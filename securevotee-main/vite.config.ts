@@ -20,9 +20,10 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
-    optimizeDeps: {
-      include: ['firebase/app', 'firebase/auth'],
+    ssr: {
+      noExternal: ['firebase'],  // This is the key line – forces full bundling of Firebase
     },
+    // Optional: Keep manualChunks for better chunk size (many use this too)
     build: {
       rollupOptions: {
         output: {
