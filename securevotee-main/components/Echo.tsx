@@ -64,7 +64,7 @@ export const Echo: React.FC = () => {
           </button>
         )}
 
-        {/* --- OPEN STATE: Chat Window (slides down from top-right) --- */}
+        {/* --- OPEN STATE: Chat Window --- */}
         {isOpen && (
           <div className="
             w-full max-w-md 
@@ -80,19 +80,20 @@ export const Echo: React.FC = () => {
             animate-in fade-in slide-in-from-top-4 duration-300
           ">
             {/* Header */}
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md p-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800">
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md p-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800 text-gray-900 dark:text-white transition-colors">
               <div className="flex items-center gap-3">
-                <div className="bg-black dark:bg-white text-white dark:text-black w-9 h-9 rounded-lg flex items-center justify-center">
+                <div className="bg-black dark:bg-white text-white dark:text-black w-9 h-9 rounded-lg flex items-center justify-center transition-colors">
                   <Sparkles size={18} />
                 </div>
                 <div>
                   <h3 className="font-black text-lg tracking-widest leading-none font-mono">ECHO</h3>
-                  <p className="text-[10px] uppercase tracking-wider text-green-600 font-bold mt-0.5">System Online</p>
+                  {/* Adjusted green for better contrast in dark mode */}
+                  <p className="text-[10px] uppercase tracking-wider text-green-600 dark:text-green-400 font-bold mt-0.5">System Online</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <X size={22} />
               </button>
@@ -117,16 +118,19 @@ export const Echo: React.FC = () => {
                       }`}
                     >
                       {msg.role === 'model' ? (
+                        // Added prose-invert for automatic dark mode typography handling
                         <div className="prose prose-sm dark:prose-invert max-w-none">
                           <ReactMarkdown
                             components={{
+                              // Added 'p' tag override to ensure base text color is consistent
+                              p: ({node, ...props}) => <p className="text-gray-900 dark:text-gray-100 mb-2 last:mb-0" {...props} />,
                               strong: ({node, ...props}) => <strong className="font-bold text-black dark:text-white" {...props} />,
                               em: ({node, ...props}) => <em className="italic text-gray-800 dark:text-gray-200" {...props} />,
-                              a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
-                              code: ({node, ...props}) => <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded" {...props} />,
-                              ul: ({node, ...props}) => <ul className="list-disc pl-4" {...props} />,
-                              ol: ({node, ...props}) => <ol className="list-decimal pl-4" {...props} />,
-                              blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic" {...props} />,
+                              a: ({node, ...props}) => <a className="text-blue-600 dark:text-blue-400 hover:underline" {...props} />,
+                              code: ({node, ...props}) => <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded text-pink-600 dark:text-pink-400" {...props} />,
+                              ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 text-gray-900 dark:text-gray-100" {...props} />,
+                              ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2 text-gray-900 dark:text-gray-100" {...props} />,
+                              blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic text-gray-600 dark:text-gray-400" {...props} />,
                             }}
                           >
                             {msg.text}
@@ -161,7 +165,7 @@ export const Echo: React.FC = () => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
                   placeholder="Type your query..."
-                  className="w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white pl-5 pr-14 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:bg-white dark:focus:bg-black transition-all text-base font-medium placeholder:text-gray-400"
+                  className="w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white pl-5 pr-14 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:bg-white dark:focus:bg-gray-950 transition-all text-base font-medium placeholder:text-gray-400"
                 />
                 <button
                   onClick={handleSend}
@@ -172,7 +176,7 @@ export const Echo: React.FC = () => {
                 </button>
               </div>
               <div className="text-center mt-3">
-                <p className="text-[10px] text-gray-400">Powered by Gemini 3.0 Flash</p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500">Powered by Gemini 3.0 Flash</p>
               </div>
             </div>
           </div>
