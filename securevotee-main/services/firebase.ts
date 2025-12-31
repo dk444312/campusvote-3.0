@@ -7,8 +7,8 @@ import {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
-  createUserWithEmailAndPassword,   // ← NEW: For sign-up
-  signInWithEmailAndPassword,       // ← NEW: For email/password login
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -18,7 +18,6 @@ const firebaseConfig = {
   storageBucket: "campusvote-830c6.firebasestorage.app",
   messagingSenderId: "415494360676",
   appId: "1:415494360676:web:17a586e51978f9b6d85971",
-  // measurementId: "G-SEQNW4RLXV" // Optional: Uncomment if using Analytics
 };
 
 // Initialize Firebase
@@ -39,6 +38,18 @@ export {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
-  createUserWithEmailAndPassword,   // ← For registration
-  signInWithEmailAndPassword,       // ← For login
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
 };
+
+// === NEW: Async exports to match your App.tsx imports ===
+export const getAuthInstance = async () => auth; // Already initialized
+
+export const getGoogleProvider = async () => googleProvider; // Already created
+
+export const signInWithPopupAsync = signInWithPopup; // Sync version works fine
+
+export const signOutAsync = signOut; // Sync version works fine
+
+export const onAuthStateChangedAsync = onAuthStateChanged; // Sync version is standard
+// ==========================================================

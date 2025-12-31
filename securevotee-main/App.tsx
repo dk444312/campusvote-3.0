@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AuthState, Voter } from './types';
 import { getSupabase } from './services/supabase';
-import { auth, googleProvider } from './services/firebase'; 
-import { signInWithPopup, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { auth, googleProvider } from './services/firebase';
+import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { AdminPanel } from './components/AdminPanel';
 import { VoterPanel } from './components/VoterPanel';
 import { 
@@ -28,25 +28,20 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // New UI Flow States
-  // 0 = Intro Screen, 1 = Echo AI Modal, 2 = Main Login
   const [introPhase, setIntroPhase] = useState<0 | 1 | 2>(0); 
 
-  // Admin Form States
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
 
-  // Voting Deadline
   const votingDeadline = new Date('2028-12-12T16:15:00');
   const isVotingClosed = new Date() >= votingDeadline;
 
-  // Handle authenticated Firebase user → setup Supabase voter
   const handleUserSetup = async (firebaseUser: FirebaseUser) => {
     try {
       if (!firebaseUser.email?.endsWith('@cunima.ac.mw')) {
-        await auth.signOut();
+        await signOut(auth);
         throw new Error('Only @cunima.ac.mw emails are allowed.');
       }
 
@@ -61,7 +56,6 @@ const App: React.FC = () => {
 
       if (error) throw error;
 
-      // Create new voter if doesn't exist
       if (!voterData) {
         if (isVotingClosed) {
           throw new Error('Voting has closed. New registrations are not allowed.');
@@ -87,13 +81,12 @@ const App: React.FC = () => {
         voterData = newVoter;
       }
 
-      // Always go to VoterPanel — whether voted or not
       setCurrentUser(voterData);
       setAuthState(AuthState.VOTER_DASHBOARD);
 
     } catch (err: any) {
       setLoginError(err.message || 'Verification failed.');
-      await auth.signOut();
+      await signOut(auth);
     } finally {
       setIsLoading(false);
     }
@@ -103,8 +96,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // If user is already logged in, skip intro
-        setIntroPhase(2); 
+        setIntroPhase(2);
         handleUserSetup(user);
       } else {
         setAuthState(AuthState.LOGIN);
@@ -178,10 +170,10 @@ const App: React.FC = () => {
 
   // Shared logout
   const logout = async () => {
-    await auth.signOut();
+    await signOut(auth);
     setCurrentUser(null);
     setAuthState(AuthState.LOGIN);
-    setIntroPhase(2); // Ensure we stay on login screen after logout
+    setIntroPhase(2);
     setLoginError('');
   };
 
@@ -191,7 +183,7 @@ const App: React.FC = () => {
     }
   };
 
-  // --- RENDER ---
+  // --- RENDER (same as your original) ---
 
   if (configError) {
     return (
@@ -205,8 +197,6 @@ const App: React.FC = () => {
     );
   }
 
-  // --- PHASE 0: INTRO SCREEN ---
-  // Only show if we are in phase 0 AND not loading existing user
   if (introPhase === 0 && !currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black px-4">
@@ -247,7 +237,6 @@ const App: React.FC = () => {
     );
   }
 
-  // --- PHASE 1: ECHO AI MODAL ---
   if (introPhase === 1) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black px-4">
@@ -284,12 +273,10 @@ const App: React.FC = () => {
     );
   }
 
-  // Admin Dashboard
   if (authState === AuthState.ADMIN_DASHBOARD) {
     return <AdminPanel onLogout={logout} />;
   }
 
-  // Voter Dashboard
   if (authState === AuthState.VOTER_DASHBOARD && currentUser) {
     return (
       <VoterPanel
@@ -300,20 +287,15 @@ const App: React.FC = () => {
     );
   }
 
-  // --- PHASE 2: MAIN LOGIN SCREEN ---
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-4 relative">
-      
-      {/* --- MAIN LOGIN CARD --- */}
       <div className={`bg-black border border-white/20 p-10 rounded-3xl shadow-2xl max-w-md w-full transition-all duration-500 ${introPhase === 1 ? 'scale-95 opacity-50 blur-[2px]' : 'scale-100 opacity-100'}`}>
 
-        {/* Header */}
         <div className="text-center mb-10 relative">
           <Vote size={48} className="text-white/80 mx-auto mb-4" />
           <h1 className="text-4xl font-black text-white tracking-tight">Campus Vote 3.0</h1>
           <p className="text-white/80 font-semibold mt-2">Catholic University of Malawi</p>
 
-          {/* Hidden Admin Trigger */}
           <CheckCircle 
             size={24} 
             className="absolute top-0 right-0 text-white/20 hover:text-white/50 cursor-pointer transition" 
@@ -321,7 +303,6 @@ const App: React.FC = () => {
           />
         </div>
 
-        {/* Voting Closed State */}
         {isVotingClosed ? (
           <div className="text-center space-y-6">
             <div className="bg-black/50 p-8 rounded-3xl border border-white/20">
@@ -335,7 +316,6 @@ const App: React.FC = () => {
               </p>
             </div>
 
-            {/* Admin Login Still Available */}
             {showAdminForm && (
               <div className="mt-8 space-y-5">
                 <input 
@@ -370,7 +350,6 @@ const App: React.FC = () => {
             )}
           </div>
         ) : (
-          /* Voting Open State */
           <>
             <button
               onClick={handleGoogleVoterLogin}
