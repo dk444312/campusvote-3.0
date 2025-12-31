@@ -1,0 +1,1061 @@
+import React, { useEffect, useState, useMemo } from 'react';
+import { getSupabase } from '../services/supabase';
+import { Candidate, Voter, VoteResult } from '../types';
+import {
+    Check, Loader2, LogOut, Briefcase, Vote, Users,
+    Lock, Trophy, Heart, Clock, ChevronDown, Share
+} from 'lucide-react';
+import { Echo } from './Echo';
+interface VoterPanelProps {
+    voter: Voter;
+    onLogout: () => void;
+    onVoteComplete: () => void;
+}
+type SelectedVotes = Record<string, string>;
+type Tab = 'ballot' | 'results' | 'socials' | 'club-elections';
+export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteComplete }) => {
+    const [activeTab, setActiveTab] = useState<Tab>('ballot');
+    const [candidates, setCandidates] = useState<Candidate[]>([]);
+    const [results, setResults] = useState<VoteResult[]>([]);
+    const [isResultsPublic, setIsResultsPublic] = useState(false);
+    const [isBallotHidden, setIsBallotHidden] = useState(false);
+    const [startDate, setStartDate] = useState<Date | null>(null); // New: Main start date
+    const [selectedVotes, setSelectedVotes] = useState<SelectedVotes>({});
+    const [submitting, setSubmitting] = useState(false);
+    const [showIntroModal, setShowIntroModal] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [likingIds, setLikingIds] = useState<Set<string>>(new Set()); // Shared for main and club
+    const [expandedManifestos, setExpandedManifestos] = useState<Set<string>>(new Set());
+    // Club states
+    const [clubs, setClubs] = useState<{ id: string; name: string }[]>([]);
+    const [clubMode, setClubMode] = useState(false);
+    const [currentClub, setCurrentClub] = useState<{ id: string; name: string } | null>(null);
+    const [clubVoter, setClubVoter] = useState<Voter | null>(null);
+    const [clubCandidates, setClubCandidates] = useState<Candidate[]>([]);
+    const [clubResults, setClubResults] = useState<VoteResult[]>([]);
+    const [isClubResultsPublic, setIsClubResultsPublic] = useState(false);
+    const [isClubBallotHidden, setIsClubBallotHidden] = useState(false);
+    const [clubStartDate, setClubStartDate] = useState<Date | null>(null); // New: Club start date
+    const [clubSelectedVotes, setClubSelectedVotes] = useState<SelectedVotes>({});
+    const [clubSubmitting, setClubSubmitting] = useState(false);
+    const [clubMemberInputs, setClubMemberInputs] = useState<Record<string, string>>({});
+    const [clubExpandedManifestos, setClubExpandedManifestos] = useState<Set<string>>(new Set());
+    const supabase = getSupabase();
+    // Fetch data
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!supabase) return;
+            try {
+                const { data: config } = await supabase
+                    .from('election_config')
+                    .select('is_results_public, is_ballot_hidden, start_date') // Updated
+                    .maybeSingle();
+                if (config) {
+                    setIsResultsPublic(config.is_results_public);
+                    setIsBallotHidden(config.is_ballot_hidden);
+                    setStartDate(config.start_date ? new Date(config.start_date) : null);
+                }
+                const { data: candData } = await supabase
+                    .from('candidates')
+                    .select('*, like_count')
+                    .order('position')
+                    .order('name');
+                if (candData) setCandidates(candData as Candidate[]);
+                const { data: resData } = await supabase
+                    .from('results')
+                    .select('candidate_name, vote_count, position');
+                if (resData) setResults(resData as VoteResult[]);
+                // Fetch clubs
+                const { data: clubsData } = await supabase
+                    .from('clubs')
+                    .select('id, name')
+                    .order('name');
+                if (clubsData) setClubs(clubsData);
+            } catch (err) {
+                console.error('Error loading data:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [supabase]);
+    // Fetch club-specific data
+    useEffect(() => {
+        if (!clubMode || !currentClub || !supabase || !clubVoter) return;
+        const fetchClubData = async () => {
+            try {
+                const { data: config } = await supabase
+                    .from('club_configs')
+                    .select('is_results_public, is_ballot_hidden, start_date') // Updated
+                    .eq('club_id', currentClub.id)
+                    .maybeSingle();
+                if (config) {
+                    setIsClubResultsPublic(config.is_results_public);
+                    setIsClubBallotHidden(config.is_ballot_hidden);
+                    setClubStartDate(config.start_date ? new Date(config.start_date) : null);
+                }
+                const { data: candData } = await supabase
+                    .from('club_candidates')
+                    .select('*, like_count')
+                    .eq('club_id', currentClub.id)
+                    .order('position')
+                    .order('name');
+                if (candData) setClubCandidates(candData as Candidate[]);
+                const { data: resData } = await supabase
+                    .from('club_results')
+                    .select('candidate_name, vote_count, position')
+                    .eq('club_id', currentClub.id);
+                if (resData) setClubResults(resData as VoteResult[]);
+            } catch (err) {
+                console.error('Error loading club data:', err);
+            }
+        };
+        fetchClubData();
+    }, [clubMode, currentClub, supabase, clubVoter]);
+    // Auto-switch tab after voting (main)
+    useEffect(() => {
+        if (voter.has_voted && activeTab === 'ballot') {
+            if (isResultsPublic) {
+                setActiveTab('results');
+            } else {
+                setActiveTab('socials');
+            }
+        }
+    }, [voter.has_voted, isResultsPublic, activeTab]);
+    const candidatesByPosition = useMemo(() => {
+        return candidates.reduce((acc, candidate) => {
+            const position = candidate.position || 'Unassigned';
+            if (!acc[position]) acc[position] = [];
+            acc[position].push(candidate);
+            return acc;
+        }, {} as Record<string, Candidate[]>);
+    }, [candidates]);
+    const allPositions = Object.keys(candidatesByPosition);
+    const allPositionsVoted = allPositions.every(pos => selectedVotes[pos]);
+    const handleSelect = (position: string, candidateId: string) => {
+        if (!voter.has_voted) {
+            setSelectedVotes(prev => ({ ...prev, [position]: candidateId }));
+        }
+    };
+    const handleVote = async () => {
+        if (voter.has_voted || !allPositionsVoted || !supabase) return;
+        setSubmitting(true);
+        const votesToInsert = Object.entries(selectedVotes).map(([position, candidate_id]) => ({
+            candidate_id,
+            voter_code: voter.code,
+            position
+        }));
+        try {
+            const { error: voteError } = await supabase.from('votes').insert(votesToInsert);
+            if (voteError) throw voteError;
+            await supabase
+                .from('voters')
+                .update({ has_voted: true })
+                .eq('code', voter.code);
+            onVoteComplete();
+            if (isResultsPublic) {
+                setActiveTab('results');
+            } else {
+                setActiveTab('socials');
+            }
+        } catch (error: any) {
+            alert('Failed to submit vote: ' + (error.message || 'Try again.'));
+        } finally {
+            setSubmitting(false);
+        }
+    };
+    const resultsByPosition = useMemo(() => {
+        return results.reduce((acc, res) => {
+            if (!acc[res.position]) acc[res.position] = [];
+            acc[res.position].push(res);
+            return acc;
+        }, {} as Record<string, VoteResult[]>);
+    }, [results]);
+    // Club helpers
+    const clubCandidatesByPosition = useMemo(() => {
+        return clubCandidates.reduce((acc, candidate) => {
+            const position = candidate.position || 'Unassigned';
+            if (!acc[position]) acc[position] = [];
+            acc[position].push(candidate);
+            return acc;
+        }, {} as Record<string, Candidate[]>);
+    }, [clubCandidates]);
+    const clubAllPositions = Object.keys(clubCandidatesByPosition);
+    const clubAllPositionsVoted = clubAllPositions.every(pos => clubSelectedVotes[pos]);
+    const handleClubSelect = (position: string, candidateId: string) => {
+        if (clubVoter && !clubVoter.has_voted) {
+            setClubSelectedVotes(prev => ({ ...prev, [position]: candidateId }));
+        }
+    };
+    const handleClubVote = async () => {
+        if (!clubVoter || clubVoter.has_voted || !clubAllPositionsVoted || !supabase || !currentClub) return;
+        setClubSubmitting(true);
+        const votesToInsert = Object.entries(clubSelectedVotes).map(([position, candidate_id]) => ({
+            candidate_id,
+            voter_code: clubVoter.code,
+            position,
+            club_id: currentClub.id
+        }));
+        try {
+            const { error: voteError } = await supabase.from('club_votes').insert(votesToInsert);
+            if (voteError) throw voteError;
+            await supabase
+                .from('club_voters')
+                .update({ has_voted: true })
+                .eq('id', clubVoter.id);
+            // Refresh club voter
+            const { data: updatedVoter } = await supabase.from('club_voters').select('*').eq('id', clubVoter.id).single();
+            if (updatedVoter) setClubVoter(updatedVoter as Voter);
+            if (isClubResultsPublic) {
+                setActiveTab('results');
+            } else {
+                setActiveTab('socials');
+            }
+        } catch (error: any) {
+            alert('Failed to submit club vote: ' + (error.message || 'Try again.'));
+        } finally {
+            setClubSubmitting(false);
+        }
+    };
+    const clubResultsByPosition = useMemo(() => {
+        return clubResults.reduce((acc, res) => {
+            if (!acc[res.position]) acc[res.position] = [];
+            acc[res.position].push(res);
+            return acc;
+        }, {} as Record<string, VoteResult[]>);
+    }, [clubResults]);
+    // Auto-switch for club
+    useEffect(() => {
+        if (clubMode && clubVoter?.has_voted && activeTab === 'ballot') {
+            if (isClubResultsPublic) {
+                setActiveTab('results');
+            } else {
+                setActiveTab('socials');
+            }
+        }
+    }, [clubMode, clubVoter?.has_voted, isClubResultsPublic, activeTab]);
+    // New: Check if election has started (main or club)
+    const hasElectionStarted = (isClub: boolean = false) => {
+        const now = new Date(); // Use actual current date in prod
+        const electionStart = isClub ? clubStartDate : startDate;
+        return !electionStart || now >= electionStart;
+    };
+    const toggleManifesto = (id: string, isClub: boolean = false) => {
+        const setExpanded = isClub ? setClubExpandedManifestos : setExpandedManifestos;
+        setExpanded(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
+    };
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <Loader2 className="animate-spin text-white" size={56} />
+            </div>
+        );
+    }
+    return (
+        <>
+            {/* Intro Modal */}
+            {!voter.has_voted && showIntroModal && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-black rounded-3xl shadow-2xl max-w-md w-full p-10 text-center border border-white">
+                        <div className="mx-auto w-24 h-24 bg-black rounded-full flex items-center justify-center mb-6">
+                            <Vote size={48} className="text-white" />
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4">Campus Vote 3.0</h1>
+                        <p className="text-lg text-white mb-8">Please review all candidates and vote wisely.</p>
+                        <p className="text-sm text-white mb-8">
+                            Voter Code: <span className="font-mono bg-black px-3 py-1 rounded">{voter.code}</span>
+                        </p>
+                        <button
+                            onClick={() => setShowIntroModal(false)}
+                            className="w-full py-5 bg-white hover:bg-black text-black hover:text-white font-bold rounded-2xl text-xl transition border border-white"
+                        >
+                            Start Voting
+                        </button>
+                    </div>
+                </div>
+            )}
+            <div className="min-h-screen bg-black flex flex-col md:flex-row">
+                {/* Desktop Sidebar */}
+                <aside className="hidden md:flex flex-col w-64 bg-black text-white shadow-2xl border-r border-white/20">
+                    <div className="p-6 border-b border-white/20">
+                        <h1 className="text-xl font-bold text-white">Campus Vote 3.0</h1>
+                        <p className="text-xs opacity-80 mt-1 text-white/80">Voter Portal</p>
+                    </div>
+                    <nav className="flex-1 p-4 space-y-2">
+                        <button
+                            onClick={() => setActiveTab('ballot')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                                activeTab === 'ballot' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
+                            }`}
+                        >
+                            <Vote size={20} />
+                            <span>Ballot</span>
+                            {voter.has_voted && <span className="ml-auto text-xs bg-white/20 px-2 py-1 rounded text-white">✓ Voted</span>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('results')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                                activeTab === 'results'
+                                    ? 'bg-white/10 shadow-lg text-white'
+                                    : !isResultsPublic
+                                    ? 'opacity-60 cursor-not-allowed text-white/50'
+                                    : 'hover:bg-white/10 text-white/80'
+                            }`}
+                        >
+                            <Trophy size={20} />
+                            <span>Results</span>
+                            {!isResultsPublic && <span className="ml-auto text-xs text-white/50">Hidden</span>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('socials')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                                activeTab === 'socials' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
+                            }`}
+                        >
+                            <Users size={20} />
+                            <span>Socials</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('club-elections')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                                activeTab === 'club-elections' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
+                            }`}
+                        >
+                            <Users size={20} />
+                            <span>Club Elections</span>
+                        </button>
+                      
+                    </nav>
+                    <div className="p-4 border-t border-white/20">
+                        <button onClick={onLogout} className="w-full flex items-center gap-3 text-white/80 hover:text-white">
+                            <LogOut size={20} />
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </aside>
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col">
+                    <header className="bg-black text-white shadow-lg border-b border-white/20">
+                        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
+                            <div>
+                                <h1 className="text-2xl font-bold text-white">
+                                    {clubMode ? `${currentClub?.name} ` : ''}
+                                    {activeTab === 'ballot' && 'Your Ballot'}
+                                    {activeTab === 'results' && 'Election Results'}
+                                    {activeTab === 'socials' && 'Candidate Profiles'}
+                                    {activeTab === 'club-elections' && !clubMode && 'Club Elections'}
+                                </h1>
+                                <p className="text-sm opacity-90 mt-1 text-white/80">Voter Code: {voter.code}</p>
+                            </div>
+                            <button onClick={onLogout} className="md:hidden text-white">
+                                <LogOut size={24} />
+                            </button>
+                        </div>
+                    </header>
+                    <main className="flex-1 max-w-5xl mx-auto w-full p-6 pb-24 md:pb-6 relative bg-black text-white">
+                        {/* BALLOT TAB (Main or Club) */}
+                        {activeTab === 'ballot' && (
+                            <div className="space-y-10 relative">
+                                {clubMode ? (
+                                    // Club Ballot
+                                    isClubBallotHidden ? (
+                                        <div className="text-center py-20 bg-black rounded-3xl border border-white/20 shadow-xl">
+                                            <Lock size={80} className="text-white/50 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Voting is Closed</p>
+                                            <p className="text-white/80 mt-4">The ballot has been hidden by the administrator.</p>
+                                        </div>
+                                    ) : !hasElectionStarted(true) ? (
+                                        <div className="text-center py-20 bg-black rounded-3xl border border-white/20 shadow-xl">
+                                            <Clock size={80} className="text-white/50 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Election Not Started Yet</p>
+                                            <p className="text-white/80 mt-4">The club election will start on {clubStartDate?.toLocaleString()}.</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {clubVoter?.has_voted && (
+                                                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
+                                                    <div className="bg-black rounded-3xl shadow-2xl p-10 text-center max-w-lg border border-white/20">
+                                                        <div className="mx-auto w-32 h-32 bg-black rounded-full flex items-center justify-center mb-6 border border-white/20">
+                                                            <Check size={64} className="text-white" />
+                                                        </div>
+                                                        <h2 className="text-4xl font-black text-white mb-4">Thank You!</h2>
+                                                        <p className="text-xl text-white">Your club vote has been recorded.</p>
+                                                        <p className="text-lg text-white/80 mt-4">View it below for reference.</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {Object.entries(clubCandidatesByPosition).map(([position, positionCandidates]) => (
+                                                <div key={position} className="bg-black rounded-3xl shadow-xl border border-white/20 p-8">
+                                                    <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                                                        <Briefcase size={32} />
+                                                        Vote for {position}
+                                                    </h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        {positionCandidates.map((candidate) => {
+                                                            const isSelected = clubSelectedVotes[position] === candidate.id;
+                                                            return (
+                                                                <div
+                                                                    key={candidate.id}
+                                                                    onClick={() => handleClubSelect(position, candidate.id)}
+                                                                    className={`bg-black rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${
+                                                                        isSelected ? 'border-white ring-2 ring-white/50' : 'border-white/20'
+                                                                    } ${clubVoter?.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
+                                                                >
+                                                                    <div className="flex">
+                                                                        <div className="w-32 h-32 bg-black flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-white/20">
+                                                                            <img
+                                                                                src={candidate.image_url}
+                                                                                alt={candidate.name}
+                                                                                className="max-w-full max-h-full object-cover"
+                                                                                onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="p-5 flex-1">
+                                                                            <h4 className="text-xl font-bold text-white">{candidate.name}</h4>
+                                                                            <p className="text-white/80 mt-3 line-clamp-3 italic">
+                                                                                "{candidate.manifesto || candidate.description || 'No manifesto'}"
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="p-5 flex items-center">
+                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${
+                                                                                isSelected ? 'border-white bg-white' : 'border-white/20'
+                                                                            }`}>
+                                                                                {isSelected && <Check size={24} className="text-black" />}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {clubVoter && !clubVoter.has_voted && (
+                                                <div className="fixed bottom-20 left-0 right-0 px-6 md:static md:mt-10 z-20 md:z-auto">
+                                                    <div className="max-w-xl mx-auto">
+                                                        <button
+                                                            onClick={handleClubVote}
+                                                            disabled={!clubAllPositionsVoted || clubSubmitting}
+                                                            className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${
+                                                                clubAllPositionsVoted && !clubSubmitting
+                                                                    ? 'bg-white hover:bg-white/80 text-black'
+                                                                    : 'bg-white/20 text-white/50 cursor-not-allowed'
+                                                            }`}
+                                                        >
+                                                            {clubSubmitting ? 'Submitting Vote...' : `Submit Final Ballot (${Object.keys(clubSelectedVotes).length}/${clubAllPositions.length})`}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )
+                                ) : (
+                                    // Main Ballot
+                                    isBallotHidden ? (
+                                        <div className="text-center py-20 bg-black rounded-3xl border border-white/20 shadow-xl">
+                                            <Lock size={80} className="text-white/50 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Voting is Closed</p>
+                                            <p className="text-white/80 mt-4">The ballot has been hidden by the administrator.</p>
+                                        </div>
+                                    ) : !hasElectionStarted() ? (
+                                        <div className="text-center py-20 bg-black rounded-3xl border border-white/20 shadow-xl">
+                                            <Clock size={80} className="text-white/50 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Election Not Started Yet</p>
+                                            <p className="text-white/80 mt-4">The election will start on {startDate?.toLocaleString()}.</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {voter.has_voted && (
+                                                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
+                                                    <div className="bg-black rounded-3xl shadow-2xl p-10 text-center max-w-lg border border-white/20">
+                                                        <div className="mx-auto w-32 h-32 bg-black rounded-full flex items-center justify-center mb-6 border border-white/20">
+                                                            <Check size={64} className="text-white" />
+                                                        </div>
+                                                        <h2 className="text-4xl font-black text-white mb-4">Thank You!</h2>
+                                                        <p className="text-xl text-white">Your vote has been recorded.</p>
+                                                        <p className="text-lg text-white/80 mt-4">View it below for reference.</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {Object.entries(candidatesByPosition).map(([position, positionCandidates]) => (
+                                                <div key={position} className="bg-black rounded-3xl shadow-xl border border-white/20 p-8">
+                                                    <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                                                        <Briefcase size={32} />
+                                                        Vote for {position}
+                                                    </h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        {positionCandidates.map((candidate) => {
+                                                            const isSelected = selectedVotes[position] === candidate.id;
+                                                            return (
+                                                                <div
+                                                                    key={candidate.id}
+                                                                    onClick={() => handleSelect(position, candidate.id)}
+                                                                    className={`bg-black rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${
+                                                                        isSelected ? 'border-white ring-2 ring-white/50' : 'border-white/20'
+                                                                    } ${voter.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
+                                                                >
+                                                                    <div className="flex">
+                                                                        <div className="w-32 h-32 bg-black flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-white/20">
+                                                                            <img
+                                                                                src={candidate.image_url}
+                                                                                alt={candidate.name}
+                                                                                className="max-w-full max-h-full object-cover"
+                                                                                onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="p-5 flex-1">
+                                                                            <h4 className="text-xl font-bold text-white">{candidate.name}</h4>
+                                                                            <p className="text-white/80 mt-3 line-clamp-3 italic">
+                                                                                "{candidate.manifesto || candidate.description || 'No manifesto'}"
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="p-5 flex items-center">
+                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${
+                                                                                isSelected ? 'border-white bg-white' : 'border-white/20'
+                                                                            }`}>
+                                                                                {isSelected && <Check size={24} className="text-black" />}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {!voter.has_voted && (
+                                                <div className="fixed bottom-20 left-0 right-0 px-6 md:static md:mt-10 z-20 md:z-auto">
+                                                    <div className="max-w-xl mx-auto">
+                                                        <button
+                                                            onClick={handleVote}
+                                                            disabled={!allPositionsVoted || submitting}
+                                                            className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${
+                                                                allPositionsVoted && !submitting
+                                                                    ? 'bg-white hover:bg-white/80 text-black'
+                                                                    : 'bg-white/20 text-white/50 cursor-not-allowed'
+                                                            }`}
+                                                        >
+                                                            {submitting ? 'Submitting Vote...' : `Submit Final Ballot (${Object.keys(selectedVotes).length}/${allPositions.length})`}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )
+                                )}
+                            </div>
+                        )}
+                        {/* RESULTS TAB (Main or Club) */}
+                        {activeTab === 'results' && (
+                            <div className="space-y-8 py-6">
+                                {clubMode ? (
+                                    // Club Results
+                                    isClubResultsPublic ? (
+                                        Object.entries(clubResultsByPosition).length > 0 ? (
+                                            Object.entries(clubResultsByPosition).map(([position, posResults]) => {
+                                                const sorted = [...posResults].sort((a, b) => b.vote_count - a.vote_count);
+                                                const maxVotes = sorted[0]?.vote_count || 0;
+                                                const winners = sorted.filter(r => r.vote_count === maxVotes);
+                                                return (
+                                                    <div key={position} className="bg-black rounded-3xl shadow-xl border border-white/20 overflow-hidden">
+                                                        <div className="bg-white/10 text-white px-6 py-4 border-b border-white/20">
+                                                            <h3 className="text-xl font-bold flex items-center gap-3">
+                                                                <Briefcase size={24} />
+                                                                {position}
+                                                            </h3>
+                                                        </div>
+                                                        <div className="p-6 space-y-4">
+                                                            {sorted.map((result, index) => {
+                                                                const isWinner = result.vote_count === maxVotes;
+                                                                return (
+                                                                    <div
+                                                                        key={result.candidate_name}
+                                                                        className={`flex items-center justify-between gap-4 p-4 rounded-xl ${
+                                                                            isWinner
+                                                                                ? 'bg-white/10 border border-white'
+                                                                                : 'bg-black border border-white/20'
+                                                                        }`}
+                                                                    >
+                                                                        <div className="flex items-center gap-3">
+                                                                            {isWinner && <Trophy size={20} className="text-white" />}
+                                                                            <h4 className="text-lg font-semibold text-white">
+                                                                                {result.candidate_name}
+                                                                                {isWinner && winners.length > 1 && ' (Tie)'}
+                                                                            </h4>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-4">
+                                                                            <p className="text-xl font-bold text-white">
+                                                                                {result.vote_count} votes
+                                                                            </p>
+                                                                            <span className="text-2xl font-bold text-white/50">
+                                                                                #{index + 1}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="text-center py-20 bg-black rounded-3xl border border-white/20 shadow-xl">
+                                                <Trophy size={80} className="text-white/50 mx-auto mb-6" />
+                                                <p className="text-xl text-white/80">No votes recorded yet.</p>
+                                            </div>
+                                        )
+                                    ) : (
+                                        <div className="text-center py-20 bg-black rounded-3xl border border-white/20 shadow-xl">
+                                            <Lock size={80} className="text-white/50 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Results are Hidden</p>
+                                            <p className="text-white/80 mt-4">The administrator will make results public soon.</p>
+                                        </div>
+                                    )
+                                ) : (
+                                    // Main Results
+                                    isResultsPublic ? (
+                                        Object.entries(resultsByPosition).length > 0 ? (
+                                            Object.entries(resultsByPosition).map(([position, posResults]) => {
+                                                const sorted = [...posResults].sort((a, b) => b.vote_count - a.vote_count);
+                                                const maxVotes = sorted[0]?.vote_count || 0;
+                                                const winners = sorted.filter(r => r.vote_count === maxVotes);
+                                                return (
+                                                    <div key={position} className="bg-black rounded-3xl shadow-xl border border-white/20 overflow-hidden">
+                                                        <div className="bg-white/10 text-white px-6 py-4 border-b border-white/20">
+                                                            <h3 className="text-xl font-bold flex items-center gap-3">
+                                                                <Briefcase size={24} />
+                                                                {position}
+                                                            </h3>
+                                                        </div>
+                                                        <div className="p-6 space-y-4">
+                                                            {sorted.map((result, index) => {
+                                                                const isWinner = result.vote_count === maxVotes;
+                                                                return (
+                                                                    <div
+                                                                        key={result.candidate_name}
+                                                                        className={`flex items-center justify-between gap-4 p-4 rounded-xl ${
+                                                                            isWinner
+                                                                                ? 'bg-white/10 border border-white'
+                                                                                : 'bg-black border border-white/20'
+                                                                        }`}
+                                                                    >
+                                                                        <div className="flex items-center gap-3">
+                                                                            {isWinner && <Trophy size={20} className="text-white" />}
+                                                                            <h4 className="text-lg font-semibold text-white">
+                                                                                {result.candidate_name}
+                                                                                {isWinner && winners.length > 1 && ' (Tie)'}
+                                                                            </h4>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-4">
+                                                                            <p className="text-xl font-bold text-white">
+                                                                                {result.vote_count} votes
+                                                                            </p>
+                                                                            <span className="text-2xl font-bold text-white/50">
+                                                                                #{index + 1}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="text-center py-20 bg-black rounded-3xl border border-white/20 shadow-xl">
+                                                <Trophy size={80} className="text-white/50 mx-auto mb-6" />
+                                                <p className="text-xl text-white/80">No votes recorded yet.</p>
+                                            </div>
+                                        )
+                                    ) : (
+                                        <div className="text-center py-20 bg-black rounded-3xl border border-white/20 shadow-xl">
+                                            <Lock size={80} className="text-white/50 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Results are Hidden</p>
+                                            <p className="text-white/80 mt-4">The administrator will make results public soon.</p>
+                                        </div>
+                                    )
+                                )}
+                            </div>
+                        )}
+                        {/* SOCIALS TAB (Main or Club) */}
+                        {activeTab === 'socials' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-8">
+                                {clubMode ? (
+                                    // Club Socials
+                                    clubCandidates.length > 0 ? (
+                                        clubCandidates.map((candidate) => {
+                                            const isLiking = likingIds.has(candidate.id);
+                                            const localLikes = candidate.like_count || 0;
+                                            const isExpanded = clubExpandedManifestos.has(candidate.id);
+                                            const manifestoPreview = candidate.manifesto?.split('. ').slice(0, 3).join('. ') + (candidate.manifesto?.split('. ').length > 3 ? '...' : '') || 'No manifesto provided.';
+                                            const handleLike = async () => {
+                                                if (isLiking) return;
+                                                setLikingIds(prev => new Set(prev).add(candidate.id));
+                                                try {
+                                                    const supabase = getSupabase();
+                                                    if (!supabase) return;
+                                                    const { error } = await supabase
+                                                        .from('club_candidate_likes')
+                                                        .insert({
+                                                            candidate_id: candidate.id,
+                                                            voter_code: clubVoter.code // Use voter_code instead of voter_id
+                                                        });
+                                                    if (error) {
+                                                        if (error.code === '23505') {
+                                                            alert("You already liked this manifesto!");
+                                                        } else {
+                                                            console.error(error);
+                                                            alert("Failed to like.");
+                                                        }
+                                                        return;
+                                                    }
+                                                    setClubCandidates(prev => prev.map(c =>
+                                                        c.id === candidate.id
+                                                            ? { ...c, like_count: (c.like_count || 0) + 1 }
+                                                            : c
+                                                    ));
+                                                } catch (err) {
+                                                    console.error(err);
+                                                } finally {
+                                                    setLikingIds(prev => {
+                                                        const next = new Set(prev);
+                                                        next.delete(candidate.id);
+                                                        return next;
+                                                    });
+                                                }
+                                            };
+                                            const handleShare = async () => {
+                                                const shareData = {
+                                                    title: `${candidate.name} - ${candidate.position}`,
+                                                    text: candidate.manifesto || 'Check out this candidate!',
+                                                    url: window.location.href,
+                                                };
+                                                if (navigator.share) {
+                                                    try {
+                                                        await navigator.share(shareData);
+                                                    } catch (err) {
+                                                        console.error('Share failed:', err);
+                                                    }
+                                                } else {
+                                                    // Fallback: Copy to clipboard
+                                                    const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                                                    try {
+                                                        await navigator.clipboard.writeText(shareText);
+                                                        alert('Candidate info copied to clipboard!');
+                                                    } catch (err) {
+                                                        console.error('Copy failed:', err);
+                                                        alert('Failed to copy. Please copy manually: ' + shareText);
+                                                    }
+                                                }
+                                            };
+                                            return (
+                                                <div key={candidate.id} className="bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+                                                    <div className="h-72 relative">
+                                                        <img
+                                                            src={candidate.image_url}
+                                                            alt={candidate.name}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                        />
+                                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                                                            <h3 className="text-2xl font-bold text-white">{candidate.name}</h3>
+                                                            <p className="text-white/80 text-lg">{candidate.position}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-8">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div className="flex items-center gap-3 text-white">
+                                                                <Heart size={24} className={localLikes > 0 ? 'fill-white' : ''} />
+                                                                <span className="text-xl font-bold">Manifesto</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <button
+                                                                    onClick={handleLike}
+                                                                    disabled={isLiking}
+                                                                    className={`px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all bg-white/10 text-white hover:bg-white/20 disabled:opacity-70`}
+                                                                >
+                                                                    <Heart size={20} className={localLikes > 0 ? 'fill-current' : ''} />
+                                                                    {isLiking ? 'Liking...' : 'Like'}
+                                                                </button>
+                                                                <span className="text-3xl font-black text-white">
+                                                                    {localLikes}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <p className={`text-white/80 text-lg leading-relaxed italic ${isExpanded ? '' : 'line-clamp-3'}`}>
+                                                            "{candidate.manifesto || 'No manifesto provided.'}"
+                                                        </p>
+                                                        {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
+                                                            <button
+                                                                onClick={() => toggleManifesto(candidate.id, true)}
+                                                                className="mt-2 bg-white text-black font-bold py-1 px-3 rounded-full flex items-center gap-1 hover:bg-white/80 transition"
+                                                            >
+                                                                {isExpanded ? 'Hide Manifesto' : 'View Whole Manifesto'} <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={handleShare}
+                                                            className="mt-4 px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all bg-white/10 text-white hover:bg-white/20"
+                                                        >
+                                                            <Share size={20} />
+                                                            Share
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <p className="col-span-full text-center text-white/80 py-20 text-xl">
+                                            No candidates available.
+                                        </p>
+                                    )
+                                ) : (
+                                    // Main Socials
+                                    candidates.length > 0 ? (
+                                        candidates.map((candidate) => {
+                                            const isLiking = likingIds.has(candidate.id);
+                                            const localLikes = candidate.like_count || 0;
+                                            const isExpanded = expandedManifestos.has(candidate.id);
+                                            const manifestoPreview = candidate.manifesto?.split('. ').slice(0, 3).join('. ') + (candidate.manifesto?.split('. ').length > 3 ? '...' : '') || 'No manifesto provided.';
+                                            const handleLike = async () => {
+                                                if (isLiking) return;
+                                                setLikingIds(prev => new Set(prev).add(candidate.id));
+                                                try {
+                                                    const supabase = getSupabase();
+                                                    if (!supabase) return;
+                                                    const { error } = await supabase
+                                                        .from('candidate_likes')
+                                                        .insert({
+                                                            candidate_id: candidate.id,
+                                                            voter_id: voter.id
+                                                        });
+                                                    if (error) {
+                                                        if (error.code === '23505') {
+                                                            alert("You already liked this manifesto!");
+                                                        } else {
+                                                            console.error(error);
+                                                            alert("Failed to like.");
+                                                        }
+                                                        return;
+                                                    }
+                                                    setCandidates(prev => prev.map(c =>
+                                                        c.id === candidate.id
+                                                            ? { ...c, like_count: (c.like_count || 0) + 1 }
+                                                            : c
+                                                    ));
+                                                } catch (err) {
+                                                    console.error(err);
+                                                } finally {
+                                                    setLikingIds(prev => {
+                                                        const next = new Set(prev);
+                                                        next.delete(candidate.id);
+                                                        return next;
+                                                    });
+                                                }
+                                            };
+                                            const handleShare = async () => {
+                                                const shareData = {
+                                                    title: `${candidate.name} - ${candidate.position}`,
+                                                    text: candidate.manifesto || 'Check out this candidate!',
+                                                    url: window.location.href,
+                                                };
+                                                if (navigator.share) {
+                                                    try {
+                                                        await navigator.share(shareData);
+                                                    } catch (err) {
+                                                        console.error('Share failed:', err);
+                                                    }
+                                                } else {
+                                                    // Fallback: Copy to clipboard
+                                                    const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                                                    try {
+                                                        await navigator.clipboard.writeText(shareText);
+                                                        alert('Candidate info copied to clipboard!');
+                                                    } catch (err) {
+                                                        console.error('Copy failed:', err);
+                                                        alert('Failed to copy. Please copy manually: ' + shareText);
+                                                    }
+                                                }
+                                            };
+                                            return (
+                                                <div key={candidate.id} className="bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+                                                    <div className="h-72 relative">
+                                                        <img
+                                                            src={candidate.image_url}
+                                                            alt={candidate.name}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                        />
+                                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                                                            <h3 className="text-2xl font-bold text-white">{candidate.name}</h3>
+                                                            <p className="text-white/80 text-lg">{candidate.position}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-8">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div className="flex items-center gap-3 text-white">
+                                                                <Heart size={24} className={localLikes > 0 ? 'fill-white' : ''} />
+                                                                <span className="text-xl font-bold">Manifesto</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <button
+                                                                    onClick={handleLike}
+                                                                    disabled={isLiking}
+                                                                    className={`px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all bg-white/10 text-white hover:bg-white/20 disabled:opacity-70`}
+                                                                >
+                                                                    <Heart size={20} className={localLikes > 0 ? 'fill-current' : ''} />
+                                                                    {isLiking ? 'Liking...' : 'Like'}
+                                                                </button>
+                                                                <span className="text-3xl font-black text-white">
+                                                                    {localLikes}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <p className={`text-white/80 text-lg leading-relaxed italic ${isExpanded ? '' : 'line-clamp-3'}`}>
+                                                            "{candidate.manifesto || 'No manifesto provided.'}"
+                                                        </p>
+                                                        {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
+                                                            <button
+                                                                onClick={() => toggleManifesto(candidate.id)}
+                                                                className="mt-2 bg-white text-black font-bold py-1 px-3 rounded-full flex items-center gap-1 hover:bg-white/80 transition"
+                                                            >
+                                                                {isExpanded ? 'Hide Manifesto' : 'View Whole Manifesto'} <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={handleShare}
+                                                            className="mt-4 px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all bg-white/10 text-white hover:bg-white/20"
+                                                        >
+                                                            <Share size={20} />
+                                                            Share
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <p className="col-span-full text-center text-white/80 py-20 text-xl">
+                                            No candidates available.
+                                        </p>
+                                    )
+                                )}
+                            </div>
+                        )}
+                        {/* CLUB ELECTIONS TAB */}
+                        {activeTab === 'club-elections' && (
+                            <div className="space-y-12 py-8">
+                                {clubMode ? (
+                                    // Redirect to ballot/results/socials based on activeTab, but since we set activeTab to 'ballot' on enter, and auto-switch, it's handled above
+                                    null // Placeholder, as ballot/results/socials handle clubMode
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {clubs.length > 0 ? (
+                                            clubs.map((club) => (
+                                                <div key={club.id} className="bg-black rounded-3xl shadow-2xl border border-white/20 p-6 flex flex-col justify-between">
+                                                    <h3 className="text-xl font-bold text-white mb-4">{club.name}</h3>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Enter your Member Number"
+                                                        value={clubMemberInputs[club.id] || ''}
+                                                        onChange={(e) => setClubMemberInputs(prev => ({ ...prev, [club.id]: e.target.value }))}
+                                                        className="w-full py-3 px-4 bg-black rounded-2xl border border-white/20 focus:border-white outline-none text-base mb-4 text-white placeholder-white/50"
+                                                    />
+                                                    <button
+                                                        onClick={async () => {
+                                                            const code = clubMemberInputs[club.id];
+                                                            if (!code || !supabase) {
+                                                                alert('Please enter your member number.');
+                                                                return;
+                                                            }
+                                                            try {
+                                                                const { data: clubVoterData, error } = await supabase
+                                                                    .from('club_voters')
+                                                                    .select('*')
+                                                                    .eq('club_id', club.id)
+                                                                    .eq('code', code)
+                                                                    .maybeSingle();
+                                                                if (error || !clubVoterData) {
+                                                                    alert('Invalid member number for this club.');
+                                                                    return;
+                                                                }
+                                                                setCurrentClub(club);
+                                                                setClubVoter(clubVoterData as Voter);
+                                                                setClubMode(true);
+                                                                setActiveTab('ballot'); // Start with ballot
+                                                            } catch (err) {
+                                                                console.error(err);
+                                                                alert('Error accessing club election.');
+                                                            }
+                                                        }}
+                                                        className="w-full py-4 bg-white hover:bg-white/80 text-black font-bold rounded-2xl text-lg transition"
+                                                    >
+                                                        Enter Club Election
+                                                    </button>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="col-span-full text-center text-white/80 py-20 text-xl">
+                                                No clubs available.
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+                              
+                    {/* Mobile Bottom Nav */}
+                    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black border-t border-white/20 shadow-2xl z-50">
+                        <div className="grid grid-cols-4 py-3">
+                            <button
+                                onClick={() => setActiveTab('ballot')}
+                                className={`flex flex-col items-center py-2 relative ${activeTab === 'ballot' ? 'text-white' : 'text-white/80'}`}
+                            >
+                                <Vote size={24} />
+                                <span className="text-xs mt-1">Ballot</span>
+                                {voter.has_voted && <Check size={14} className="absolute top-0 right-2 text-white bg-black rounded-full border border-white" />}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('results')}
+                                className={`flex flex-col items-center py-2 relative ${activeTab === 'results' ? 'text-white' : 'text-white/80'}`}
+                            >
+                                <Trophy size={24} />
+                                <span className="text-xs mt-1">Results</span>
+                                {!isResultsPublic && <Lock size={14} className="absolute top-0 right-2 text-white/50 bg-black rounded-full border border-white/20" />}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('socials')}
+                                className={`flex flex-col items-center py-2 ${activeTab === 'socials' ? 'text-white' : 'text-white/80'}`}
+                            >
+                                <Users size={24} />
+                                <span className="text-xs mt-1">Socials</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('club-elections')}
+                                className={`flex flex-col items-center py-2 ${activeTab === 'club-elections' ? 'text-white' : 'text-white/80'}`}
+                            >
+                                <Users size={24} />
+                                <span className="text-xs mt-1">Clubs</span>
+                            </button>
+                        </div>
+                    </nav>
+                  
+                </div>
+            </div>
+           <div className="fixed top-4 right-4 md:top-6 md:right-6 z-[9999] pointer-events-none">
+        <div className="pointer-events-auto">
+    <Echo />
+  </div>
+</div>
+        </>
+       
+    );
+};

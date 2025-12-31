@@ -1,0 +1,4 @@
+{
+  "name": "SecureVote",
+  "description": "A secure, code-based voting platform using Supabase. Features admin dashboard with statistics, voter management, and unique complex voting codes."
+}
