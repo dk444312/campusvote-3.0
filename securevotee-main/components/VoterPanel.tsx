@@ -548,17 +548,20 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             {!voter.has_voted && (
                                                 <div className="fixed bottom-20 left-0 right-0 px-6 md:static md:mt-10 z-20 md:z-auto">
                                                     <div className="max-w-xl mx-auto">
-                                                        <button
-                                                            onClick={handleVote}
-                                                            disabled={!allPositionsVoted || submitting}
-                                                            className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${
-                                                                allPositionsVoted && !submitting
-                                                                    ? 'bg-white hover:bg-white/80 text-black'
-                                                                    : 'bg-white/20 text-white/50 cursor-not-allowed'
-                                                            }`}
-                                                        >
-                                                            {submitting ? 'Submitting Vote...' : `Submit Final Ballot (\( {Object.keys(selectedVotes).length}/ \){allPositions.length})`}
-                                                        </button>
+<button
+    onClick={handleVote}
+    disabled={!allPositionsVoted || submitting}
+    className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${
+        allPositionsVoted && !submitting
+            ? 'bg-white hover:bg-white/80 text-black'
+            : 'bg-white/20 text-white/50 cursor-not-allowed'
+    }`}
+>
+    {submitting 
+        ? 'Submitting Vote...' 
+        : `Submit Final Ballot (\( {Object.keys(selectedVotes ?? {}).length}/ \){allPositions?.length ?? 0})`
+    }
+</button>
                                                     </div>
                                                 </div>
                                             )}
