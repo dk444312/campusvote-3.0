@@ -6,27 +6,31 @@ import {
     Lock, Trophy, Heart, Clock, ChevronDown, Share
 } from 'lucide-react';
 import { Echo } from './Echo';
+
 interface VoterPanelProps {
     voter: Voter;
     onLogout: () => void;
     onVoteComplete: () => void;
 }
+
 type SelectedVotes = Record<string, string>;
 type Tab = 'ballot' | 'results' | 'socials' | 'club-elections';
+
 export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteComplete }) => {
     const [activeTab, setActiveTab] = useState<Tab>('ballot');
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [results, setResults] = useState<VoteResult[]>([]);
     const [isResultsPublic, setIsResultsPublic] = useState(false);
     const [isBallotHidden, setIsBallotHidden] = useState(false);
-    const [startDate, setStartDate] = useState<Date | null>(null); // New: Main start date
+    const [startDate, setStartDate] = useState<Date | null>(null);
     const [selectedVotes, setSelectedVotes] = useState<SelectedVotes>({});
     const [submitting, setSubmitting] = useState(false);
     const [showIntroModal, setShowIntroModal] = useState(true);
     const [loading, setLoading] = useState(true);
-    const [likingIds, setLikingIds] = useState<Set<string>>(new Set()); // Shared for main and club
+    const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
     const [expandedManifestos, setExpandedManifestos] = useState<Set<string>>(new Set());
     const [likedCandidates, setLikedCandidates] = useState<Set<string>>(new Set());
+
     // Club states
     const [clubs, setClubs] = useState<{ id: string; name: string }[]>([]);
     const [clubMode, setClubMode] = useState(false);
@@ -36,13 +40,15 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
     const [clubResults, setClubResults] = useState<VoteResult[]>([]);
     const [isClubResultsPublic, setIsClubResultsPublic] = useState(false);
     const [isClubBallotHidden, setIsClubBallotHidden] = useState(false);
-    const [clubStartDate, setClubStartDate] = useState<Date | null>(null); // New: Club start date
+    const [clubStartDate, setClubStartDate] = useState<Date | null>(null);
     const [clubSelectedVotes, setClubSelectedVotes] = useState<SelectedVotes>({});
     const [clubSubmitting, setClubSubmitting] = useState(false);
     const [clubMemberInputs, setClubMemberInputs] = useState<Record<string, string>>({});
     const [clubExpandedManifestos, setClubExpandedManifestos] = useState<Set<string>>(new Set());
     const [clubLikedCandidates, setClubLikedCandidates] = useState<Set<string>>(new Set());
+
     const supabase = getSupabase();
+
     // Fetch data
     useEffect(() => {
         const fetchData = async () => {
@@ -50,35 +56,41 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             try {
                 const { data: config } = await supabase
                     .from('election_config')
-                    .select('is_results_public, is_ballot_hidden, start_date') // Updated
+                    .select('is_results_public, is_ballot_hidden, start_date')
                     .maybeSingle();
+
                 if (config) {
                     setIsResultsPublic(config.is_results_public);
                     setIsBallotHidden(config.is_ballot_hidden);
                     setStartDate(config.start_date ? new Date(config.start_date) : null);
                 }
+
                 const { data: candData } = await supabase
                     .from('candidates')
                     .select('*, like_count')
                     .order('position')
                     .order('name');
                 if (candData) setCandidates(candData as Candidate[]);
+
                 const { data: resData } = await supabase
                     .from('results')
                     .select('candidate_name, vote_count, position');
                 if (resData) setResults(resData as VoteResult[]);
+
                 // Fetch clubs
                 const { data: clubsData } = await supabase
                     .from('clubs')
                     .select('id, name')
                     .order('name');
                 if (clubsData) setClubs(clubsData);
+
                 // Fetch liked candidates for main
                 const { data: likesData } = await supabase
                     .from('candidate_likes')
                     .select('candidate_id')
                     .eq('voter_id', voter.id);
                 if (likesData) setLikedCandidates(new Set(likesData.map(l => l.candidate_id)));
+
             } catch (err) {
                 console.error('Error loading data:', err);
             } finally {
@@ -86,22 +98,26 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             }
         };
         fetchData();
-    }, [supabase]);
+    }, [supabase, voter.id]);
+
     // Fetch club-specific data
     useEffect(() => {
         if (!clubMode || !currentClub || !supabase || !clubVoter) return;
+
         const fetchClubData = async () => {
             try {
                 const { data: config } = await supabase
                     .from('club_configs')
-                    .select('is_results_public, is_ballot_hidden, start_date') // Updated
+                    .select('is_results_public, is_ballot_hidden, start_date')
                     .eq('club_id', currentClub.id)
                     .maybeSingle();
+
                 if (config) {
                     setIsClubResultsPublic(config.is_results_public);
                     setIsClubBallotHidden(config.is_ballot_hidden);
                     setClubStartDate(config.start_date ? new Date(config.start_date) : null);
                 }
+
                 const { data: candData } = await supabase
                     .from('club_candidates')
                     .select('*, like_count')
@@ -109,23 +125,27 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                     .order('position')
                     .order('name');
                 if (candData) setClubCandidates(candData as Candidate[]);
+
                 const { data: resData } = await supabase
                     .from('club_results')
                     .select('candidate_name, vote_count, position')
                     .eq('club_id', currentClub.id);
                 if (resData) setClubResults(resData as VoteResult[]);
+
                 // Fetch liked for club
                 const { data: clubLikesData } = await supabase
                     .from('club_candidate_likes')
                     .select('candidate_id')
                     .eq('voter_code', clubVoter.code);
                 if (clubLikesData) setClubLikedCandidates(new Set(clubLikesData.map(l => l.candidate_id)));
+
             } catch (err) {
                 console.error('Error loading club data:', err);
             }
         };
         fetchClubData();
     }, [clubMode, currentClub, supabase, clubVoter]);
+
     // Auto-switch tab after voting (main)
     useEffect(() => {
         if (voter.has_voted && activeTab === 'ballot') {
@@ -136,6 +156,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             }
         }
     }, [voter.has_voted, isResultsPublic, activeTab]);
+
     const candidatesByPosition = useMemo(() => {
         return candidates.reduce((acc, candidate) => {
             const position = candidate.position || 'Unassigned';
@@ -144,29 +165,37 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             return acc;
         }, {} as Record<string, Candidate[]>);
     }, [candidates]);
+
     const allPositions = Object.keys(candidatesByPosition);
     const allPositionsVoted = allPositions.every(pos => selectedVotes[pos]);
+
     const handleSelect = (position: string, candidateId: string) => {
         if (!voter.has_voted) {
             setSelectedVotes(prev => ({ ...prev, [position]: candidateId }));
         }
     };
+
     const handleVote = async () => {
         if (voter.has_voted || !allPositionsVoted || !supabase) return;
         setSubmitting(true);
+
         const votesToInsert = Object.entries(selectedVotes).map(([position, candidate_id]) => ({
             candidate_id,
             voter_code: voter.code,
             position
         }));
+
         try {
             const { error: voteError } = await supabase.from('votes').insert(votesToInsert);
             if (voteError) throw voteError;
+
             await supabase
                 .from('voters')
                 .update({ has_voted: true })
                 .eq('code', voter.code);
+
             onVoteComplete();
+
             if (isResultsPublic) {
                 setActiveTab('results');
             } else {
@@ -178,6 +207,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             setSubmitting(false);
         }
     };
+
     const resultsByPosition = useMemo(() => {
         return results.reduce((acc, res) => {
             if (!acc[res.position]) acc[res.position] = [];
@@ -185,6 +215,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             return acc;
         }, {} as Record<string, VoteResult[]>);
     }, [results]);
+
     // Club helpers
     const clubCandidatesByPosition = useMemo(() => {
         return clubCandidates.reduce((acc, candidate) => {
@@ -194,32 +225,40 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             return acc;
         }, {} as Record<string, Candidate[]>);
     }, [clubCandidates]);
+
     const clubAllPositions = Object.keys(clubCandidatesByPosition);
     const clubAllPositionsVoted = clubAllPositions.every(pos => clubSelectedVotes[pos]);
+
     const handleClubSelect = (position: string, candidateId: string) => {
         if (clubVoter && !clubVoter.has_voted) {
             setClubSelectedVotes(prev => ({ ...prev, [position]: candidateId }));
         }
     };
+
     const handleClubVote = async () => {
         if (!clubVoter || clubVoter.has_voted || !clubAllPositionsVoted || !supabase || !currentClub) return;
         setClubSubmitting(true);
+
         const votesToInsert = Object.entries(clubSelectedVotes).map(([position, candidate_id]) => ({
             candidate_id,
             voter_code: clubVoter.code,
             position,
             club_id: currentClub.id
         }));
+
         try {
             const { error: voteError } = await supabase.from('club_votes').insert(votesToInsert);
             if (voteError) throw voteError;
+
             await supabase
                 .from('club_voters')
                 .update({ has_voted: true })
                 .eq('id', clubVoter.id);
+
             // Refresh club voter
             const { data: updatedVoter } = await supabase.from('club_voters').select('*').eq('id', clubVoter.id).single();
             if (updatedVoter) setClubVoter(updatedVoter as Voter);
+
             if (isClubResultsPublic) {
                 setActiveTab('results');
             } else {
@@ -231,6 +270,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             setClubSubmitting(false);
         }
     };
+
     const clubResultsByPosition = useMemo(() => {
         return clubResults.reduce((acc, res) => {
             if (!acc[res.position]) acc[res.position] = [];
@@ -238,6 +278,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             return acc;
         }, {} as Record<string, VoteResult[]>);
     }, [clubResults]);
+
     // Auto-switch for club
     useEffect(() => {
         if (clubMode && clubVoter?.has_voted && activeTab === 'ballot') {
@@ -248,12 +289,14 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             }
         }
     }, [clubMode, clubVoter?.has_voted, isClubResultsPublic, activeTab]);
-    // New: Check if election has started (main or club)
+
+    // Check if election has started (main or club)
     const hasElectionStarted = (isClub: boolean = false) => {
-        const now = new Date(); // Use actual current date in prod
+        const now = new Date();
         const electionStart = isClub ? clubStartDate : startDate;
         return !electionStart || now >= electionStart;
     };
+
     const toggleManifesto = (id: string, isClub: boolean = false) => {
         const setExpanded = isClub ? setClubExpandedManifestos : setExpandedManifestos;
         setExpanded(prev => {
@@ -266,12 +309,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             return newSet;
         });
     };
-    // Safe vote progress counts
-    const mainVotesCast = Object.keys(selectedVotes).length;
-    const mainTotalPositions = allPositions.length;
 
-    const clubVotesCast = Object.keys(clubSelectedVotes).length;
-    const clubTotalPositions = clubAllPositions.length;
     if (loading) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
@@ -279,6 +317,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             </div>
         );
     }
+
     return (
         <>
             {/* Intro Modal */}
@@ -312,9 +351,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                     <nav className="flex-1 p-4 space-y-2">
                         <button
                             onClick={() => setActiveTab('ballot')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                                activeTab === 'ballot' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
-                            }`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'ballot' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
+                                }`}
                         >
                             <Vote size={20} />
                             <span>Ballot</span>
@@ -322,13 +360,12 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                         </button>
                         <button
                             onClick={() => setActiveTab('results')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                                activeTab === 'results'
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'results'
                                     ? 'bg-white/10 shadow-lg text-white'
                                     : !isResultsPublic
-                                    ? 'opacity-60 cursor-not-allowed text-white/50'
-                                    : 'hover:bg-white/10 text-white/80'
-                            }`}
+                                        ? 'opacity-60 cursor-not-allowed text-white/50'
+                                        : 'hover:bg-white/10 text-white/80'
+                                }`}
                         >
                             <Trophy size={20} />
                             <span>Results</span>
@@ -336,18 +373,16 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                         </button>
                         <button
                             onClick={() => setActiveTab('socials')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                                activeTab === 'socials' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
-                            }`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'socials' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
+                                }`}
                         >
                             <Users size={20} />
                             <span>Socials</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('club-elections')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                                activeTab === 'club-elections' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
-                            }`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'club-elections' ? 'bg-white/10 shadow-lg text-white' : 'hover:bg-white/10 text-white/80'
+                                }`}
                         >
                             <Users size={20} />
                             <span>Club Elections</span>
@@ -425,9 +460,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 <div
                                                                     key={candidate.id}
                                                                     onClick={() => handleClubSelect(position, candidate.id)}
-                                                                    className={`bg-black rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${
-                                                                        isSelected ? 'border-white ring-2 ring-white/50' : 'border-white/20'
-                                                                    } ${clubVoter?.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
+                                                                    className={`bg-black rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${isSelected ? 'border-white ring-2 ring-white/50' : 'border-white/20'
+                                                                        } ${clubVoter?.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
                                                                 >
                                                                     <div className="flex">
                                                                         <div className="w-32 h-32 bg-black flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-white/20">
@@ -445,9 +479,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                             </p>
                                                                         </div>
                                                                         <div className="p-5 flex items-center">
-                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${
-                                                                                isSelected ? 'border-white bg-white' : 'border-white/20'
-                                                                            }`}>
+                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-white bg-white' : 'border-white/20'
+                                                                                }`}>
                                                                                 {isSelected && <Check size={24} className="text-black" />}
                                                                             </div>
                                                                         </div>
@@ -464,13 +497,12 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                         <button
                                                             onClick={handleClubVote}
                                                             disabled={!clubAllPositionsVoted || clubSubmitting}
-                                                            className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${
-                                                                clubAllPositionsVoted && !clubSubmitting
+                                                            className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${clubAllPositionsVoted && !clubSubmitting
                                                                     ? 'bg-white hover:bg-white/80 text-black'
                                                                     : 'bg-white/20 text-white/50 cursor-not-allowed'
-                                                            }`}
+                                                                }`}
                                                         >
-                                                            {clubSubmitting ? 'Submitting Vote...' : `Submit Final Ballot (\( {clubVotesCast}/ \){clubTotalPositions})`}
+                                                            {clubSubmitting ? 'Submitting Vote...' : 'Submit Final Ballot'}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -518,9 +550,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 <div
                                                                     key={candidate.id}
                                                                     onClick={() => handleSelect(position, candidate.id)}
-                                                                    className={`bg-black rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${
-                                                                        isSelected ? 'border-white ring-2 ring-white/50' : 'border-white/20'
-                                                                    } ${voter.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
+                                                                    className={`bg-black rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${isSelected ? 'border-white ring-2 ring-white/50' : 'border-white/20'
+                                                                        } ${voter.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
                                                                 >
                                                                     <div className="flex">
                                                                         <div className="w-32 h-32 bg-black flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-white/20">
@@ -538,9 +569,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                             </p>
                                                                         </div>
                                                                         <div className="p-5 flex items-center">
-                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${
-                                                                                isSelected ? 'border-white bg-white' : 'border-white/20'
-                                                                            }`}>
+                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-white bg-white' : 'border-white/20'
+                                                                                }`}>
                                                                                 {isSelected && <Check size={24} className="text-black" />}
                                                                             </div>
                                                                         </div>
@@ -557,13 +587,12 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                         <button
                                                             onClick={handleVote}
                                                             disabled={!allPositionsVoted || submitting}
-                                                            className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${
-                                                                allPositionsVoted && !submitting
+                                                            className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${allPositionsVoted && !submitting
                                                                     ? 'bg-white hover:bg-white/80 text-black'
                                                                     : 'bg-white/20 text-white/50 cursor-not-allowed'
-                                                            }`}
+                                                                }`}
                                                         >
-                                                            {submitting ? 'Submitting Vote...' : `Submit Final Ballot (\( {mainVotesCast}/ \){mainTotalPositions})`}
+                                                            {submitting ? 'Submitting Vote...' : 'Submit Final Ballot'}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -598,11 +627,10 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 return (
                                                                     <div
                                                                         key={result.candidate_name}
-                                                                        className={`flex items-center justify-between gap-4 p-4 rounded-xl ${
-                                                                            isWinner
+                                                                        className={`flex items-center justify-between gap-4 p-4 rounded-xl ${isWinner
                                                                                 ? 'bg-white/10 border border-white'
                                                                                 : 'bg-black border border-white/20'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         <div className="flex items-center gap-3">
                                                                             {isWinner && <Trophy size={20} className="text-white" />}
@@ -661,11 +689,10 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 return (
                                                                     <div
                                                                         key={result.candidate_name}
-                                                                        className={`flex items-center justify-between gap-4 p-4 rounded-xl ${
-                                                                            isWinner
+                                                                        className={`flex items-center justify-between gap-4 p-4 rounded-xl ${isWinner
                                                                                 ? 'bg-white/10 border border-white'
                                                                                 : 'bg-black border border-white/20'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         <div className="flex items-center gap-3">
                                                                             {isWinner && <Trophy size={20} className="text-white" />}
@@ -716,6 +743,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             const localLikes = candidate.like_count || 0;
                                             const isExpanded = clubExpandedManifestos.has(candidate.id);
                                             const isLiked = clubLikedCandidates.has(candidate.id);
+
                                             const handleLike = async () => {
                                                 if (isLiking || isLiked) return;
                                                 setLikingIds(prev => new Set(prev).add(candidate.id));
@@ -753,6 +781,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                     });
                                                 }
                                             };
+
                                             const handleShare = async () => {
                                                 const shareData = {
                                                     title: `${candidate.name} - ${candidate.position}`,
@@ -767,7 +796,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                     }
                                                 } else {
                                                     // Fallback: Copy to clipboard
-                                                    const shareText = `\( {shareData.title}\n \){shareData.text}\n${shareData.url}`;
+                                                    const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
                                                     try {
                                                         await navigator.clipboard.writeText(shareText);
                                                         alert('Candidate info copied to clipboard!');
@@ -777,6 +806,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                     }
                                                 }
                                             };
+
                                             return (
                                                 <div key={candidate.id} className="bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/20">
                                                     <div className="p-4 flex items-center gap-3 border-b border-white/20">
@@ -844,6 +874,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             const localLikes = candidate.like_count || 0;
                                             const isExpanded = expandedManifestos.has(candidate.id);
                                             const isLiked = likedCandidates.has(candidate.id);
+
                                             const handleLike = async () => {
                                                 if (isLiking || isLiked) return;
                                                 setLikingIds(prev => new Set(prev).add(candidate.id));
@@ -881,6 +912,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                     });
                                                 }
                                             };
+
                                             const handleShare = async () => {
                                                 const shareData = {
                                                     title: `${candidate.name} - ${candidate.position}`,
@@ -895,7 +927,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                     }
                                                 } else {
                                                     // Fallback: Copy to clipboard
-                                                    const shareText = `\( {shareData.title}\n \){shareData.text}\n${shareData.url}`;
+                                                    const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
                                                     try {
                                                         await navigator.clipboard.writeText(shareText);
                                                         alert('Candidate info copied to clipboard!');
@@ -905,6 +937,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                     }
                                                 }
                                             };
+
                                             return (
                                                 <div key={candidate.id} className="bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/20">
                                                     <div className="p-4 flex items-center gap-3 border-b border-white/20">
@@ -1068,13 +1101,11 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
 
                 </div>
             </div>
-           <div className="fixed top-4 right-4 md:top-6 md:right-6 z-[9999] pointer-events-none">
-        <div className="pointer-events-auto">
-    <Echo />
-  </div>
-</div>
+            <div className="fixed top-4 right-4 md:top-6 md:right-6 z-[9999] pointer-events-none">
+                <div className="pointer-events-auto">
+                    <Echo />
+                </div>
+            </div>
         </>
-
     );
 };
-//
