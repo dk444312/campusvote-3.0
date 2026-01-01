@@ -21,6 +21,15 @@ import {
 } from 'lucide-react';
 import { Echo } from './components/Echo';
 
+const GoogleLogo = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.501 12.293c0-.81-.073-1.62-.218-2.41H12v4.567h5.936a5.088 5.088 0 0 1-2.206 3.347v2.773h3.56c2.085-1.923 3.29-4.754 3.29-8.077Z" fill="#4285F4"/>
+    <path d="M12 23c2.976 0 5.47-1.006 7.293-2.727l-3.56-2.773c-.99.663-2.257 1.055-3.733 1.055-2.874 0-5.303-1.94-6.172-4.548H1.156v2.863C2.969 20.427 6.758 23 12 23Z" fill="#34A853"/>
+    <path d="M5.828 13.927C5.583 13.264 5.44 12.55 5.44 11.818c0-.732.143-1.446.388-2.109V6.846H1.156A11.993 11.993 0 0 0 0 12c0 1.93.464 3.75 1.156 5.154l4.672-3.227Z" fill="#FBBC05"/>
+    <path d="M12 5.636c1.616 0 3.065.556 4.204 1.647l3.15-3.15C17.47 2.344 14.976 1 12 1 6.758 1 2.969 3.573 1.156 8.154l4.672 3.227C6.697 7.773 9.126 5.636 12 5.636Z" fill="#EA4335"/>
+  </svg>
+);
+
 const App: React.FC = () => {
   const [authState, setAuthState] = useState<AuthState>(AuthState.LOGIN);
   const [currentUser, setCurrentUser] = useState<Voter | null>(null);
@@ -28,21 +37,16 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // New UI Flow States
-  // 0 = Intro Screen, 1 = Echo AI Modal, 2 = Main Login
   const [introPhase, setIntroPhase] = useState<0 | 1 | 2>(0); 
 
-  // Admin Form States
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
 
-  // Voting Deadline
   const votingDeadline = new Date('2028-12-12T16:15:00');
   const isVotingClosed = new Date() >= votingDeadline;
 
-  // Handle authenticated Firebase user → setup Supabase voter
   const handleUserSetup = async (firebaseUser: FirebaseUser) => {
     try {
       if (!firebaseUser.email?.endsWith('@cunima.ac.mw')) {
@@ -61,7 +65,6 @@ const App: React.FC = () => {
 
       if (error) throw error;
 
-      // Create new voter if doesn't exist
       if (!voterData) {
         if (isVotingClosed) {
           throw new Error('Voting has closed. New registrations are not allowed.');
@@ -87,7 +90,6 @@ const App: React.FC = () => {
         voterData = newVoter;
       }
 
-      // Always go to VoterPanel — whether voted or not
       setCurrentUser(voterData);
       setAuthState(AuthState.VOTER_DASHBOARD);
 
@@ -99,11 +101,9 @@ const App: React.FC = () => {
     }
   };
 
-  // Firebase Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // If user is already logged in, skip intro
         setIntroPhase(2); 
         handleUserSetup(user);
       } else {
@@ -119,7 +119,6 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Secret Admin Access (5 clicks)
   useEffect(() => {
     if (adminClickCount > 0 && adminClickCount < 5) {
       const timer = setTimeout(() => setAdminClickCount(0), 5000);
@@ -131,7 +130,6 @@ const App: React.FC = () => {
     }
   }, [adminClickCount]);
 
-  // Voter Google Login
   const handleGoogleVoterLogin = async () => {
     if (isVotingClosed) {
       setLoginError('Voting period has ended.');
@@ -151,7 +149,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Admin Login
   const handleAdminLogin = async () => {
     if (adminUser === 'admin' && adminPass === 'adminpass1') {
       setIsLoading(true);
@@ -176,12 +173,11 @@ const App: React.FC = () => {
     }
   };
 
-  // Shared logout
   const logout = async () => {
     await auth.signOut();
     setCurrentUser(null);
     setAuthState(AuthState.LOGIN);
-    setIntroPhase(2); // Ensure we stay on login screen after logout
+    setIntroPhase(2);
     setLoginError('');
   };
 
@@ -190,8 +186,6 @@ const App: React.FC = () => {
       setCurrentUser({ ...currentUser, has_voted: true });
     }
   };
-
-  // --- RENDER ---
 
   if (configError) {
     return (
@@ -205,78 +199,73 @@ const App: React.FC = () => {
     );
   }
 
-  // --- PHASE 0: INTRO SCREEN ---
-  // Only show if we are in phase 0 AND not loading existing user
   if (introPhase === 0 && !currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black px-4">
-        <div className="max-w-md w-full text-center text-white space-y-8 animate-fade-in-up">
+        <div className="max-w-md w-full text-center text-white space-y-10 py-12">
           <div className="flex justify-center">
-            <div className="bg-white/10 p-4 rounded-full shadow-lg shadow-white/10">
-              <Vote size={48} className="text-white" />
+            <div className="bg-white/10 p-5 rounded-2xl shadow-2xl shadow-white/10">
+              <Vote size={56} className="text-white" />
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <h1 className="text-5xl font-black tracking-tight text-white">
+
+          <div className="space-y-3">
+            <h1 className="text-5xl md:text-6xl font-black tracking-tight text-white leading-tight">
               Campus Vote 3.0
             </h1>
-            <p className="text-white/80 text-sm tracking-widest uppercase font-semibold">Catholic University of Malawi</p>
+            <p className="text-white/70 text-sm tracking-widest uppercase font-semibold">Catholic University of Malawi</p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6 rounded-2xl text-left shadow-xl">
-            <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-              <Zap size={20} /> Why this version is better
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
+            <h3 className="text-2xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+              <Zap size={28} className="text-yellow-400" /> Next-Level Voting
             </h3>
-            <p className="text-white/80 leading-relaxed">
-              We have completely re-engineered the voting experience to be faster, more secure, and smarter. 
-              Version 3.0 introduces military-grade encryption for your votes, real-time analytics to ensure transparency, 
-              and a streamlined interface that makes casting your ballot easier than ever before.
+            <p className="text-white/80 leading-relaxed text-base">
+              Fully redesigned with military-grade security, instant verification, and a beautiful interface built for speed and trust.
             </p>
           </div>
 
           <button 
             onClick={() => setIntroPhase(1)}
-            className="group relative w-full bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-3 overflow-hidden transition-all hover:bg-white/80 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+            className="group relative w-full bg-white text-black font-bold py-5 rounded-2xl flex items-center justify-center gap-4 text-lg overflow-hidden transition-all hover:shadow-2xl hover:shadow-white/20"
           >
-            <span className="relative z-10 text-lg">Continue</span>
-            <ArrowRight className="relative z-10 transition-transform group-hover:translate-x-1" />
+            <span className="relative z-10">Continue to Login</span>
+            <ArrowRight className="relative z-10 transition-transform group-hover:translate-x-2" size={24} />
           </button>
         </div>
       </div>
     );
   }
 
-  // --- PHASE 1: ECHO AI MODAL ---
   if (introPhase === 1) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black px-4">
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="bg-black border border-white/20 p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center relative">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
+          <div className="bg-black/80 border border-white/20 p-10 rounded-3xl shadow-2xl max-w-md w-full text-center relative">
             <button 
               onClick={() => setIntroPhase(2)}
-              className="absolute top-4 right-4 text-white/50 hover:text-white transition"
+              className="absolute top-5 right-5 text-white/50 hover:text-white transition"
             >
-              <X size={24} />
+              <X size={28} />
             </button>
-            
-            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-white/10">
-              <Sparkles size={32} className="text-white" />
+
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+              <Sparkles size={40} className="text-white" />
             </div>
 
-            <h2 className="text-2xl font-bold text-white mb-2">Introducing Echo AI</h2>
-            <div className="h-1 w-12 bg-white/50 mx-auto mb-6 rounded-full"></div>
+            <h2 className="text-3xl font-black text-white mb-3">Meet Echo AI</h2>
+            <div className="h-1 w-20 bg-white/30 mx-auto mb-8 rounded-full"></div>
 
-            <p className="text-white/80 leading-relaxed mb-8">
-              Echo AI is a new feature powered by <span className="font-bold text-white">Google Gemini</span> to promote effective communication during the elections period.
-              <Echo />
+            <p className="text-white/80 leading-relaxed text-lg mb-10">
+              Powered by <span className="font-bold text-white">Google Gemini</span>, Echo helps foster respectful and informed discussions throughout the election.
             </p>
+            <Echo />
 
             <button 
               onClick={() => setIntroPhase(2)}
-              className="w-full bg-white hover:bg-white/80 text-black font-bold py-3 rounded-xl transition shadow-lg shadow-white/10"
+              className="mt-10 w-full bg-white hover:bg-white/90 text-black font-bold py-5 rounded-2xl text-lg transition shadow-xl"
             >
-              Get Started
+              Continue to Sign In
             </button>
           </div>
         </div>
@@ -284,12 +273,10 @@ const App: React.FC = () => {
     );
   }
 
-  // Admin Dashboard
   if (authState === AuthState.ADMIN_DASHBOARD) {
     return <AdminPanel onLogout={logout} />;
   }
 
-  // Voter Dashboard
   if (authState === AuthState.VOTER_DASHBOARD && currentUser) {
     return (
       <VoterPanel
@@ -300,120 +287,121 @@ const App: React.FC = () => {
     );
   }
 
-  // --- PHASE 2: MAIN LOGIN SCREEN ---
+  // Main Login Screen
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black px-4 relative">
-      
-      {/* --- MAIN LOGIN CARD --- */}
-      <div className={`bg-black border border-white/20 p-10 rounded-3xl shadow-2xl max-w-md w-full transition-all duration-500 ${introPhase === 1 ? 'scale-95 opacity-50 blur-[2px]' : 'scale-100 opacity-100'}`}>
+    <div className="min-h-screen flex items-center justify-center bg-black px-6 py-12">
+      <div className="w-full max-w-md">
+        <div className="bg-black/70 backdrop-blur-2xl border border-white/10 p-10 md:p-12 rounded-3xl shadow-2xl">
 
-        {/* Header */}
-        <div className="text-center mb-10 relative">
-          <Vote size={48} className="text-white/80 mx-auto mb-4" />
-          <h1 className="text-4xl font-black text-white tracking-tight">Campus Vote 3.0</h1>
-          <p className="text-white/80 font-semibold mt-2">Catholic University of Malawi</p>
-
-          {/* Hidden Admin Trigger */}
-          <CheckCircle 
-            size={24} 
-            className="absolute top-0 right-0 text-white/20 hover:text-white/50 cursor-pointer transition" 
-            onClick={() => setAdminClickCount(prev => prev + 1)} 
-          />
-        </div>
-
-        {/* Voting Closed State */}
-        {isVotingClosed ? (
-          <div className="text-center space-y-6">
-            <div className="bg-black/50 p-8 rounded-3xl border border-white/20">
-              <Calendar size={64} className="text-white/50 mx-auto mb-6" />
-              <h2 className="text-3xl font-black text-white mb-3">Voting Has Ended</h2>
-              <p className="text-lg text-white/80">
-                The election closed on <strong>December 12, 2028</strong>.
-              </p>
-              <p className="text-md text-white/60 mt-4">
-                Results and candidate profiles are available in the voter portal.
-              </p>
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 rounded-3xl mb-6 shadow-xl">
+              <Vote size={40} className="text-white" />
             </div>
-
-            {/* Admin Login Still Available */}
-            {showAdminForm && (
-              <div className="mt-8 space-y-5">
-                <input 
-                  type="text" 
-                  value={adminUser} 
-                  onChange={(e) => setAdminUser(e.target.value)} 
-                  className="w-full p-4 bg-black border border-white/20 rounded-xl focus:border-white outline-none text-white" 
-                  placeholder="Admin Username" 
-                />
-                <input 
-                  type="password" 
-                  value={adminPass} 
-                  onChange={(e) => setAdminPass(e.target.value)} 
-                  className="w-full p-4 bg-black border border-white/20 rounded-xl focus:border-white outline-none text-white" 
-                  placeholder="Admin Password" 
-                />
-                <button 
-                  onClick={handleAdminLogin} 
-                  disabled={isLoading}
-                  className="w-full bg-white hover:bg-white/80 text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition"
-                >
-                  {isLoading ? <Loader2 className="animate-spin" /> : <Shield size={20} />}
-                  Admin Login
-                </button>
-              </div>
-            )}
-
-            {loginError && (
-              <div className="mt-6 p-4 bg-white/10 text-white/80 rounded-xl text-center font-medium">
-                {loginError}
-              </div>
-            )}
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">Campus Vote 3.0</h1>
+            <p className="text-white/60 mt-2 text-sm font-medium">Catholic University of Malawi</p>
           </div>
-        ) : (
-          /* Voting Open State */
-          <>
-            <button
-              onClick={handleGoogleVoterLogin}
-              disabled={isLoading || introPhase === 1}
-              className="w-full py-5 rounded-xl font-bold text-black text-lg bg-white hover:bg-white/80 disabled:bg-white/50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg transition transform hover:scale-105"
-            >
-              {isLoading ? <Loader2 className="animate-spin" size={24} /> : <User size={24} />}
-              {isLoading ? 'Signing In...' : 'Sign In with Google (@cunima.ac.mw)'}
-            </button>
 
-            {showAdminForm && (
-              <div className="mt-8 space-y-5 border-t pt-6 border-white/20">
-                <input 
-                  type="text" 
-                  value={adminUser} 
-                  onChange={(e) => setAdminUser(e.target.value)} 
-                  className="w-full p-4 bg-black border border-white/20 rounded-xl focus:border-white outline-none text-white" 
-                  placeholder="Admin Username" 
-                />
-                <input 
-                  type="password" 
-                  value={adminPass} 
-                  onChange={(e) => setAdminPass(e.target.value)} 
-                  className="w-full p-4 bg-black border border-white/20 rounded-xl focus:border-white outline-none text-white" 
-                  placeholder="Admin Password" 
-                />
-                <button 
-                  onClick={handleAdminLogin} 
-                  disabled={isLoading}
-                  className="w-full bg-white hover:bg-white/80 text-black font-bold py-4 rounded-xl"
-                >
-                  Admin Login
-                </button>
+          {isVotingClosed ? (
+            <div className="text-center space-y-8">
+              <div className="bg-white/5 border border-white/10 p-10 rounded-3xl">
+                <Calendar size={72} className="text-white/40 mx-auto mb-6" />
+                <h2 className="text-3xl font-bold text-white mb-4">Voting Period Ended</h2>
+                <p className="text-white/70 text-lg">
+                  The election concluded on <span className="font-bold">December 12, 2028</span>.
+                </p>
               </div>
-            )}
 
-            {loginError && (
-              <div className="mt-6 p-4 bg-white/10 text-white/80 rounded-xl text-center">
-                {loginError}
-              </div>
-            )}
-          </>
-        )}
+              {showAdminForm && (
+                <div className="space-y-5 mt-8">
+                  <input 
+                    type="text" 
+                    value={adminUser} 
+                    onChange={(e) => setAdminUser(e.target.value)} 
+                    placeholder="Admin Username"
+                    className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-white/40 focus:border-white/50 outline-none transition"
+                  />
+                  <input 
+                    type="password" 
+                    value={adminPass} 
+                    onChange={(e) => setAdminPass(e.target.value)} 
+                    placeholder="Admin Password"
+                    className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-white/40 focus:border-white/50 outline-none transition"
+                  />
+                  <button 
+                    onClick={handleAdminLogin} 
+                    disabled={isLoading}
+                    className="w-full bg-white/90 hover:bg-white text-black font-bold py-5 rounded-2xl transition flex items-center justify-center gap-3"
+                  >
+                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : <Shield size={24} />}
+                    Admin Access
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Modern Google Sign-In Button */}
+              <button
+                onClick={handleGoogleVoterLogin}
+                disabled={isLoading}
+                className="w-full group relative bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 backdrop-blur-sm px-6 py-5 rounded-2xl font-medium text-white flex items-center justify-center gap-4 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-white/10 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <Loader2 className="animate-spin" size={24} />
+                ) : (
+                  <>
+                    <GoogleLogo />
+                    <span className="text-lg">Continue with Google</span>
+                  </>
+                )}
+              </button>
+
+              <p className="text-center text-white/50 text-sm mt-6">
+                Only @cunima.ac.mw accounts are permitted
+              </p>
+
+              {showAdminForm && (
+                <div className="mt-10 pt-8 border-t border-white/10 space-y-5">
+                  <input 
+                    type="text" 
+                    value={adminUser} 
+                    onChange={(e) => setAdminUser(e.target.value)} 
+                    placeholder="Admin Username"
+                    className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-white/40 focus:border-white/50 outline-none transition"
+                  />
+                  <input 
+                    type="password" 
+                    value={adminPass} 
+                    onChange={(e) => setAdminPass(e.target.value)} 
+                    placeholder="Admin Password"
+                    className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-white/40 focus:border-white/50 outline-none transition"
+                  />
+                  <button 
+                    onClick={handleAdminLogin} 
+                    disabled={isLoading}
+                    className="w-full bg-white hover:bg-white/90 text-black font-bold py-5 rounded-2xl transition"
+                  >
+                    Admin Login
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {loginError && (
+            <div className="mt-8 p-5 bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl text-center font-medium">
+              {loginError}
+            </div>
+          )}
+
+          {/* Hidden admin trigger */}
+          <button
+            onClick={() => setAdminClickCount(prev => prev + 1)}
+            className="absolute top-4 right-4 text-white/20 hover:text-white/50 transition"
+          >
+            <CheckCircle size={28} />
+          </button>
+        </div>
       </div>
       <Echo />
     </div>
@@ -421,5 +409,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-//good
