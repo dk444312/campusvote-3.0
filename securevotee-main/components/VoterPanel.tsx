@@ -26,6 +26,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
     const [loading, setLoading] = useState(true);
     const [likingIds, setLikingIds] = useState<Set<string>>(new Set()); // Shared for main and club
     const [expandedManifestos, setExpandedManifestos] = useState<Set<string>>(new Set());
+    const [likedCandidates, setLikedCandidates] = useState<Set<string>>(new Set());
     // Club states
     const [clubs, setClubs] = useState<{ id: string; name: string }[]>([]);
     const [clubMode, setClubMode] = useState(false);
@@ -40,6 +41,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
     const [clubSubmitting, setClubSubmitting] = useState(false);
     const [clubMemberInputs, setClubMemberInputs] = useState<Record<string, string>>({});
     const [clubExpandedManifestos, setClubExpandedManifestos] = useState<Set<string>>(new Set());
+    const [clubLikedCandidates, setClubLikedCandidates] = useState<Set<string>>(new Set());
     const supabase = getSupabase();
     // Fetch data
     useEffect(() => {
@@ -71,6 +73,12 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                     .select('id, name')
                     .order('name');
                 if (clubsData) setClubs(clubsData);
+                // Fetch liked candidates for main
+                const { data: likesData } = await supabase
+                    .from('candidate_likes')
+                    .select('candidate_id')
+                    .eq('voter_id', voter.id);
+                if (likesData) setLikedCandidates(new Set(likesData.map(l => l.candidate_id)));
             } catch (err) {
                 console.error('Error loading data:', err);
             } finally {
@@ -106,6 +114,12 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                     .select('candidate_name, vote_count, position')
                     .eq('club_id', currentClub.id);
                 if (resData) setClubResults(resData as VoteResult[]);
+                // Fetch liked for club
+                const { data: clubLikesData } = await supabase
+                    .from('club_candidate_likes')
+                    .select('candidate_id')
+                    .eq('voter_code', clubVoter.code);
+                if (clubLikesData) setClubLikedCandidates(new Set(clubLikesData.map(l => l.candidate_id)));
             } catch (err) {
                 console.error('Error loading club data:', err);
             }
@@ -332,7 +346,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                             <Users size={20} />
                             <span>Club Elections</span>
                         </button>
-                      
+
                     </nav>
                     <div className="p-4 border-t border-white/20">
                         <button onClick={onLogout} className="w-full flex items-center gap-3 text-white/80 hover:text-white">
@@ -450,7 +464,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                     : 'bg-white/20 text-white/50 cursor-not-allowed'
                                                             }`}
                                                         >
-                                                            {clubSubmitting ? 'Submitting Vote...' : `Submit Final Ballot (${Object.keys(clubSelectedVotes).length}/${clubAllPositions.length})`}
+                                                            {clubSubmitting ? 'Submitting Vote...' : `Submit Final Ballot (\( {Object.keys(clubSelectedVotes).length}/ \){clubAllPositions.length})`}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -543,7 +557,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                     : 'bg-white/20 text-white/50 cursor-not-allowed'
                                                             }`}
                                                         >
-                                                            {submitting ? 'Submitting Vote...' : `Submit Final Ballot (${Object.keys(selectedVotes).length}/${allPositions.length})`}
+                                                            {submitting ? 'Submitting Vote...' : `Submit Final Ballot (\( {Object.keys(selectedVotes).length}/ \){allPositions.length})`}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -695,9 +709,9 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             const isLiking = likingIds.has(candidate.id);
                                             const localLikes = candidate.like_count || 0;
                                             const isExpanded = clubExpandedManifestos.has(candidate.id);
-                                            const manifestoPreview = candidate.manifesto?.split('. ').slice(0, 3).join('. ') + (candidate.manifesto?.split('. ').length > 3 ? '...' : '') || 'No manifesto provided.';
+                                            const isLiked = clubLikedCandidates.has(candidate.id);
                                             const handleLike = async () => {
-                                                if (isLiking) return;
+                                                if (isLiking || isLiked) return;
                                                 setLikingIds(prev => new Set(prev).add(candidate.id));
                                                 try {
                                                     const supabase = getSupabase();
@@ -722,6 +736,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                             ? { ...c, like_count: (c.like_count || 0) + 1 }
                                                             : c
                                                     ));
+                                                    setClubLikedCandidates(prev => new Set(prev).add(candidate.id));
                                                 } catch (err) {
                                                     console.error(err);
                                                 } finally {
@@ -746,7 +761,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                     }
                                                 } else {
                                                     // Fallback: Copy to clipboard
-                                                    const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                                                    const shareText = `\( {shareData.title}\n \){shareData.text}\n${shareData.url}`;
                                                     try {
                                                         await navigator.clipboard.writeText(shareText);
                                                         alert('Candidate info copied to clipboard!');
@@ -758,56 +773,54 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             };
                                             return (
                                                 <div key={candidate.id} className="bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/20">
-                                                    <div className="h-72 relative">
-                                                        <img
-                                                            src={candidate.image_url}
-                                                            alt={candidate.name}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
-                                                        />
-                                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                                                            <h3 className="text-2xl font-bold text-white">{candidate.name}</h3>
-                                                            <p className="text-white/80 text-lg">{candidate.position}</p>
+                                                    <div className="p-4 flex items-center gap-3 border-b border-white/20">
+                                                        <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                                                            <img
+                                                                src={candidate.image_url}
+                                                                alt={candidate.name}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-xl font-bold text-white">{candidate.name}</h3>
+                                                            <p className="text-white/80 text-sm">{candidate.position}</p>
                                                         </div>
                                                     </div>
-                                                    <div className="p-8">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <div className="flex items-center gap-3 text-white">
-                                                                <Heart size={24} className={localLikes > 0 ? 'fill-white' : ''} />
-                                                                <span className="text-xl font-bold">Manifesto</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-3">
-                                                                <button
-                                                                    onClick={handleLike}
-                                                                    disabled={isLiking}
-                                                                    className={`px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all bg-white/10 text-white hover:bg-white/20 disabled:opacity-70`}
-                                                                >
-                                                                    <Heart size={20} className={localLikes > 0 ? 'fill-current' : ''} />
-                                                                    {isLiking ? 'Liking...' : 'Like'}
-                                                                </button>
-                                                                <span className="text-3xl font-black text-white">
-                                                                    {localLikes}
-                                                                </span>
-                                                            </div>
+                                                    <img
+                                                        src={candidate.image_url}
+                                                        alt={candidate.name}
+                                                        className="w-full max-h-[70vh] object-contain bg-black"
+                                                        onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                    />
+                                                    <div className="p-4 space-y-2">
+                                                        <div className="flex items-center gap-6">
+                                                            <button
+                                                                onClick={handleLike}
+                                                                disabled={isLiking}
+                                                                className="hover:opacity-80 transition disabled:opacity-50"
+                                                            >
+                                                                <Heart size={28} className={`text-white ${isLiked ? 'fill-white' : ''}`} />
+                                                            </button>
+                                                            <button
+                                                                onClick={handleShare}
+                                                                className="hover:opacity-80 transition"
+                                                            >
+                                                                <Share size={28} className="text-white" />
+                                                            </button>
                                                         </div>
-                                                        <p className={`text-white/80 text-lg leading-relaxed italic ${isExpanded ? '' : 'line-clamp-3'}`}>
-                                                            "{candidate.manifesto || 'No manifesto provided.'}"
+                                                        <p className="text-white font-medium">{localLikes} likes</p>
+                                                        <p className={`text-white/90 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
+                                                            {candidate.manifesto || 'No manifesto provided.'}
                                                         </p>
                                                         {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
                                                             <button
                                                                 onClick={() => toggleManifesto(candidate.id, true)}
-                                                                className="mt-2 bg-white text-black font-bold py-1 px-3 rounded-full flex items-center gap-1 hover:bg-white/80 transition"
+                                                                className="text-white/70 hover:text-white font-medium text-sm"
                                                             >
-                                                                {isExpanded ? 'Hide Manifesto' : 'View Whole Manifesto'} <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                                {isExpanded ? 'less' : 'more'}
                                                             </button>
                                                         )}
-                                                        <button
-                                                            onClick={handleShare}
-                                                            className="mt-4 px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all bg-white/10 text-white hover:bg-white/20"
-                                                        >
-                                                            <Share size={20} />
-                                                            Share
-                                                        </button>
                                                     </div>
                                                 </div>
                                             );
@@ -824,9 +837,9 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             const isLiking = likingIds.has(candidate.id);
                                             const localLikes = candidate.like_count || 0;
                                             const isExpanded = expandedManifestos.has(candidate.id);
-                                            const manifestoPreview = candidate.manifesto?.split('. ').slice(0, 3).join('. ') + (candidate.manifesto?.split('. ').length > 3 ? '...' : '') || 'No manifesto provided.';
+                                            const isLiked = likedCandidates.has(candidate.id);
                                             const handleLike = async () => {
-                                                if (isLiking) return;
+                                                if (isLiking || isLiked) return;
                                                 setLikingIds(prev => new Set(prev).add(candidate.id));
                                                 try {
                                                     const supabase = getSupabase();
@@ -851,6 +864,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                             ? { ...c, like_count: (c.like_count || 0) + 1 }
                                                             : c
                                                     ));
+                                                    setLikedCandidates(prev => new Set(prev).add(candidate.id));
                                                 } catch (err) {
                                                     console.error(err);
                                                 } finally {
@@ -875,7 +889,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                     }
                                                 } else {
                                                     // Fallback: Copy to clipboard
-                                                    const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                                                    const shareText = `\( {shareData.title}\n \){shareData.text}\n${shareData.url}`;
                                                     try {
                                                         await navigator.clipboard.writeText(shareText);
                                                         alert('Candidate info copied to clipboard!');
@@ -887,56 +901,54 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             };
                                             return (
                                                 <div key={candidate.id} className="bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/20">
-                                                    <div className="h-72 relative">
-                                                        <img
-                                                            src={candidate.image_url}
-                                                            alt={candidate.name}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
-                                                        />
-                                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                                                            <h3 className="text-2xl font-bold text-white">{candidate.name}</h3>
-                                                            <p className="text-white/80 text-lg">{candidate.position}</p>
+                                                    <div className="p-4 flex items-center gap-3 border-b border-white/20">
+                                                        <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                                                            <img
+                                                                src={candidate.image_url}
+                                                                alt={candidate.name}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-xl font-bold text-white">{candidate.name}</h3>
+                                                            <p className="text-white/80 text-sm">{candidate.position}</p>
                                                         </div>
                                                     </div>
-                                                    <div className="p-8">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <div className="flex items-center gap-3 text-white">
-                                                                <Heart size={24} className={localLikes > 0 ? 'fill-white' : ''} />
-                                                                <span className="text-xl font-bold">Manifesto</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-3">
-                                                                <button
-                                                                    onClick={handleLike}
-                                                                    disabled={isLiking}
-                                                                    className={`px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all bg-white/10 text-white hover:bg-white/20 disabled:opacity-70`}
-                                                                >
-                                                                    <Heart size={20} className={localLikes > 0 ? 'fill-current' : ''} />
-                                                                    {isLiking ? 'Liking...' : 'Like'}
-                                                                </button>
-                                                                <span className="text-3xl font-black text-white">
-                                                                    {localLikes}
-                                                                </span>
-                                                            </div>
+                                                    <img
+                                                        src={candidate.image_url}
+                                                        alt={candidate.name}
+                                                        className="w-full max-h-[70vh] object-contain bg-black"
+                                                        onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                    />
+                                                    <div className="p-4 space-y-2">
+                                                        <div className="flex items-center gap-6">
+                                                            <button
+                                                                onClick={handleLike}
+                                                                disabled={isLiking}
+                                                                className="hover:opacity-80 transition disabled:opacity-50"
+                                                            >
+                                                                <Heart size={28} className={`text-white ${isLiked ? 'fill-white' : ''}`} />
+                                                            </button>
+                                                            <button
+                                                                onClick={handleShare}
+                                                                className="hover:opacity-80 transition"
+                                                            >
+                                                                <Share size={28} className="text-white" />
+                                                            </button>
                                                         </div>
-                                                        <p className={`text-white/80 text-lg leading-relaxed italic ${isExpanded ? '' : 'line-clamp-3'}`}>
-                                                            "{candidate.manifesto || 'No manifesto provided.'}"
+                                                        <p className="text-white font-medium">{localLikes} likes</p>
+                                                        <p className={`text-white/90 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
+                                                            {candidate.manifesto || 'No manifesto provided.'}
                                                         </p>
                                                         {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
                                                             <button
                                                                 onClick={() => toggleManifesto(candidate.id)}
-                                                                className="mt-2 bg-white text-black font-bold py-1 px-3 rounded-full flex items-center gap-1 hover:bg-white/80 transition"
+                                                                className="text-white/70 hover:text-white font-medium text-sm"
                                                             >
-                                                                {isExpanded ? 'Hide Manifesto' : 'View Whole Manifesto'} <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                                {isExpanded ? 'less' : 'more'}
                                                             </button>
                                                         )}
-                                                        <button
-                                                            onClick={handleShare}
-                                                            className="mt-4 px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all bg-white/10 text-white hover:bg-white/20"
-                                                        >
-                                                            <Share size={20} />
-                                                            Share
-                                                        </button>
                                                     </div>
                                                 </div>
                                             );
@@ -1011,7 +1023,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                             </div>
                         )}
                     </main>
-                              
+
                     {/* Mobile Bottom Nav */}
                     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black border-t border-white/20 shadow-2xl z-50">
                         <div className="grid grid-cols-4 py-3">
@@ -1047,7 +1059,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                             </button>
                         </div>
                     </nav>
-                  
+
                 </div>
             </div>
            <div className="fixed top-4 right-4 md:top-6 md:right-6 z-[9999] pointer-events-none">
@@ -1056,6 +1068,6 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
   </div>
 </div>
         </>
-       
+
     );
 };
