@@ -1077,3 +1077,4 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
 
     );
 };
+//
