@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Echo } from './components/Echo';
 
+// Google Logo Component
 const GoogleLogo = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
     <path d="M22.501 12.293c0-.81-.073-1.62-.218-2.41H12v4.567h5.936a5.088 5.088 0 0 1-2.206 3.347v2.773h3.56c2.085-1.923 3.29-4.754 3.29-8.077Z" fill="#4285F4"/>
@@ -197,80 +198,93 @@ const App: React.FC = () => {
     );
   }
 
+  // Common wrapper to inject styles
+  const FontWrapper = ({ children }: { children: React.ReactNode }) => (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
+        .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+      `}</style>
+      {children}
+    </>
+  );
+
   if (introPhase === 0 && !currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black px-4 sm:px-6">
-        <div className="max-w-md w-full text-center text-white space-y-10 py-12">
-          <div className="flex justify-center">
-            <div className="bg-white/10 p-5 rounded-3xl shadow-2xl shadow-white/10">
-              <Vote size={56} className="text-white" />
+      <FontWrapper>
+        <div className="min-h-screen flex items-center justify-center bg-black px-4 sm:px-6">
+          <div className="max-w-md w-full text-center text-white space-y-10 py-12">
+            <div className="flex justify-center">
+              <div className="bg-white/10 p-5 rounded-3xl shadow-2xl shadow-white/10">
+                <Vote size={56} className="text-white" />
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-3">
-            {/* Responsive Typography */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-tight">
-              Campus Vote 3.0
-            </h1>
-            <p className="text-white/70 text-sm tracking-widest uppercase font-semibold">Catholic University of Malawi</p>
-          </div>
+            <div className="space-y-3">
+              {/* Applied font-jakarta here */}
+              <h1 className="font-jakarta text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                Campus Vote 3.0
+              </h1>
+              <p className="text-white/70 text-sm tracking-widest uppercase font-semibold">Catholic University of Malawi</p>
+            </div>
 
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
-            <h3 className="text-2xl font-bold text-white mb-4 flex items-center justify-center gap-3">
-              <Zap size={28} className="text-yellow-400" /> Next-Level Voting
-            </h3>
-            <p className="text-white/80 leading-relaxed text-base">
-              Fully redesigned with military-grade security, instant verification, and a beautiful interface built for speed and trust.
-            </p>
-          </div>
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
+              <h3 className="font-jakarta text-2xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+                <Zap size={28} className="text-yellow-400" /> Next-Level Voting
+              </h3>
+              <p className="text-white/80 leading-relaxed text-base">
+                Fully redesigned with military-grade security, instant verification, and a beautiful interface built for speed and trust.
+              </p>
+            </div>
 
-          <button 
-            onClick={() => setIntroPhase(1)}
-            // Added rounded-full here
-            className="group relative w-full bg-white text-black font-bold py-5 rounded-full flex items-center justify-center gap-4 text-lg overflow-hidden transition-all hover:shadow-2xl hover:shadow-white/20"
-          >
-            <span className="relative z-10">Continue to Login</span>
-            <ArrowRight className="relative z-10 transition-transform group-hover:translate-x-2" size={24} />
-          </button>
+            <button 
+              onClick={() => setIntroPhase(1)}
+              className="group relative w-full bg-white text-black font-bold py-5 rounded-full flex items-center justify-center gap-4 text-lg overflow-hidden transition-all hover:shadow-2xl hover:shadow-white/20"
+            >
+              <span className="relative z-10 font-jakarta">Continue to Login</span>
+              <ArrowRight className="relative z-10 transition-transform group-hover:translate-x-2" size={24} />
+            </button>
+          </div>
         </div>
-      </div>
+      </FontWrapper>
     );
   }
 
   if (introPhase === 1) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black px-4 sm:px-6">
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
-          <div className="bg-black/80 border border-white/20 p-10 rounded-3xl shadow-2xl max-w-md w-full text-center relative">
-            <button 
-              onClick={() => setIntroPhase(2)}
-              className="absolute top-5 right-5 text-white/50 hover:text-white transition"
-            >
-              <X size={28} />
-            </button>
+      <FontWrapper>
+        <div className="min-h-screen flex items-center justify-center bg-black px-4 sm:px-6">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
+            <div className="bg-black/80 border border-white/20 p-10 rounded-3xl shadow-2xl max-w-md w-full text-center relative">
+              <button 
+                onClick={() => setIntroPhase(2)}
+                className="absolute top-5 right-5 text-white/50 hover:text-white transition"
+              >
+                <X size={28} />
+              </button>
 
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
-              <Sparkles size={40} className="text-white" />
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+                <Sparkles size={40} className="text-white" />
+              </div>
+
+              <h2 className="font-jakarta text-3xl font-extrabold text-white mb-3">Meet Echo AI</h2>
+              <div className="h-1 w-20 bg-white/30 mx-auto mb-8 rounded-full"></div>
+
+              <p className="text-white/80 leading-relaxed text-lg mb-10">
+                Powered by <span className="font-bold text-white">Google Gemini</span>, Echo helps foster respectful and informed discussions throughout the election.
+              </p>
+              <Echo />
+
+              <button 
+                onClick={() => setIntroPhase(2)}
+                className="mt-10 w-full bg-white hover:bg-white/90 text-black font-bold py-5 rounded-full text-lg transition shadow-xl"
+              >
+                <span className="font-jakarta">Continue to Sign In</span>
+              </button>
             </div>
-
-            <h2 className="text-3xl font-black text-white mb-3">Meet Echo AI</h2>
-            <div className="h-1 w-20 bg-white/30 mx-auto mb-8 rounded-full"></div>
-
-            <p className="text-white/80 leading-relaxed text-lg mb-10">
-              Powered by <span className="font-bold text-white">Google Gemini</span>, Echo helps foster respectful and informed discussions throughout the election.
-            </p>
-            <Echo />
-
-            <button 
-              onClick={() => setIntroPhase(2)}
-              // Added rounded-full here
-              className="mt-10 w-full bg-white hover:bg-white/90 text-black font-bold py-5 rounded-full text-lg transition shadow-xl"
-            >
-              Continue to Sign In
-            </button>
           </div>
         </div>
-      </div>
+      </FontWrapper>
     );
   }
 
@@ -290,129 +304,126 @@ const App: React.FC = () => {
 
   // Main Login Screen
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black px-4 sm:px-6 py-12">
-      <div className="w-full max-w-md">
-        <div className="bg-black/70 backdrop-blur-2xl border border-white/10 p-8 sm:p-10 md:p-12 rounded-3xl shadow-2xl">
+    <FontWrapper>
+      <div className="min-h-screen flex items-center justify-center bg-black px-4 sm:px-6 py-12">
+        <div className="w-full max-w-md">
+          <div className="bg-black/70 backdrop-blur-2xl border border-white/10 p-8 sm:p-10 md:p-12 rounded-3xl shadow-2xl">
 
-          <div className="text-center mb-10 sm:mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 rounded-3xl mb-6 shadow-xl">
-              <Vote size={40} className="text-white" />
-            </div>
-            {/* Highly Responsive Title */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
-              Campus Vote 3.0
-            </h1>
-            <p className="text-white/60 mt-3 text-sm font-medium">Catholic University of Malawi</p>
-          </div>
-
-          {isVotingClosed ? (
-            <div className="text-center space-y-8">
-              <div className="bg-white/5 border border-white/10 p-10 rounded-3xl">
-                <Calendar size={72} className="text-white/40 mx-auto mb-6" />
-                <h2 className="text-3xl font-bold text-white mb-4">Voting Period Ended</h2>
-                <p className="text-white/70 text-lg">
-                  The election concluded on <span className="font-bold">December 12, 2028</span>.
-                </p>
+            <div className="text-center mb-10 sm:mb-12">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 rounded-3xl mb-6 shadow-xl">
+                <Vote size={40} className="text-white" />
               </div>
-
-              {showAdminForm && (
-                <div className="space-y-5 mt-8">
-                  <input 
-                    type="text" 
-                    value={adminUser} 
-                    onChange={(e) => setAdminUser(e.target.value)} 
-                    placeholder="Admin Username"
-                    // Rounded inputs
-                    className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-full text-white placeholder-white/40 focus:border-white/50 outline-none transition"
-                  />
-                  <input 
-                    type="password" 
-                    value={adminPass} 
-                    onChange={(e) => setAdminPass(e.target.value)} 
-                    placeholder="Admin Password"
-                    // Rounded inputs
-                    className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-full text-white placeholder-white/40 focus:border-white/50 outline-none transition"
-                  />
-                  <button 
-                    onClick={handleAdminLogin} 
-                    disabled={isLoading}
-                    // Rounded button
-                    className="w-full bg-white/90 hover:bg-white text-black font-bold py-5 rounded-full transition flex items-center justify-center gap-3"
-                  >
-                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : <Shield size={24} />}
-                    Admin Access
-                  </button>
-                </div>
-              )}
+              
+              {/* Title with New Professional Font */}
+              <h1 className="font-jakarta text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                Campus Vote 3.0
+              </h1>
+              <p className="text-white/60 mt-3 text-sm font-medium">Catholic University of Malawi</p>
             </div>
-          ) : (
-            <>
-              {/* Rounded and Responsive Google Sign-In Button */}
-              <button
-                onClick={handleGoogleVoterLogin}
-                disabled={isLoading}
-                // Changed rounded-2xl to rounded-full. Added text resizing for mobile.
-                className="w-full group relative bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 backdrop-blur-sm px-6 py-5 rounded-full font-medium text-white flex items-center justify-center gap-3 sm:gap-4 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-white/10 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" size={24} />
-                ) : (
-                  <>
-                    <GoogleLogo />
-                    <span className="text-base sm:text-lg">Continue with Google</span>
-                  </>
+
+            {isVotingClosed ? (
+              <div className="text-center space-y-8">
+                <div className="bg-white/5 border border-white/10 p-10 rounded-3xl">
+                  <Calendar size={72} className="text-white/40 mx-auto mb-6" />
+                  <h2 className="font-jakarta text-3xl font-bold text-white mb-4">Voting Period Ended</h2>
+                  <p className="text-white/70 text-lg">
+                    The election concluded on <span className="font-bold">December 12, 2028</span>.
+                  </p>
+                </div>
+
+                {showAdminForm && (
+                  <div className="space-y-5 mt-8">
+                    <input 
+                      type="text" 
+                      value={adminUser} 
+                      onChange={(e) => setAdminUser(e.target.value)} 
+                      placeholder="Admin Username"
+                      className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-full text-white placeholder-white/40 focus:border-white/50 outline-none transition"
+                    />
+                    <input 
+                      type="password" 
+                      value={adminPass} 
+                      onChange={(e) => setAdminPass(e.target.value)} 
+                      placeholder="Admin Password"
+                      className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-full text-white placeholder-white/40 focus:border-white/50 outline-none transition"
+                    />
+                    <button 
+                      onClick={handleAdminLogin} 
+                      disabled={isLoading}
+                      className="w-full bg-white/90 hover:bg-white text-black font-bold py-5 rounded-full transition flex items-center justify-center gap-3"
+                    >
+                      {isLoading ? <Loader2 className="animate-spin" size={24} /> : <Shield size={24} />}
+                      Admin Access
+                    </button>
+                  </div>
                 )}
-              </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={handleGoogleVoterLogin}
+                  disabled={isLoading}
+                  className="w-full group relative bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 backdrop-blur-sm px-6 py-5 rounded-full font-medium text-white flex items-center justify-center gap-3 sm:gap-4 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-white/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <Loader2 className="animate-spin" size={24} />
+                  ) : (
+                    <>
+                      <GoogleLogo />
+                      <span className="text-base sm:text-lg font-jakarta">Continue with Google</span>
+                    </>
+                  )}
+                </button>
 
-              <p className="text-center text-white/50 text-sm mt-6">
-                Only @cunima.ac.mw accounts are permitted
-              </p>
+                <p className="text-center text-white/50 text-sm mt-6">
+                  Only @cunima.ac.mw accounts are permitted
+                </p>
 
-              {showAdminForm && (
-                <div className="mt-10 pt-8 border-t border-white/10 space-y-5">
-                  <input 
-                    type="text" 
-                    value={adminUser} 
-                    onChange={(e) => setAdminUser(e.target.value)} 
-                    placeholder="Admin Username"
-                    className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-full text-white placeholder-white/40 focus:border-white/50 outline-none transition"
-                  />
-                  <input 
-                    type="password" 
-                    value={adminPass} 
-                    onChange={(e) => setAdminPass(e.target.value)} 
-                    placeholder="Admin Password"
-                    className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-full text-white placeholder-white/40 focus:border-white/50 outline-none transition"
-                  />
-                  <button 
-                    onClick={handleAdminLogin} 
-                    disabled={isLoading}
-                    className="w-full bg-white hover:bg-white/90 text-black font-bold py-5 rounded-full transition"
-                  >
-                    Admin Login
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+                {showAdminForm && (
+                  <div className="mt-10 pt-8 border-t border-white/10 space-y-5">
+                    <input 
+                      type="text" 
+                      value={adminUser} 
+                      onChange={(e) => setAdminUser(e.target.value)} 
+                      placeholder="Admin Username"
+                      className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-full text-white placeholder-white/40 focus:border-white/50 outline-none transition"
+                    />
+                    <input 
+                      type="password" 
+                      value={adminPass} 
+                      onChange={(e) => setAdminPass(e.target.value)} 
+                      placeholder="Admin Password"
+                      className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-full text-white placeholder-white/40 focus:border-white/50 outline-none transition"
+                    />
+                    <button 
+                      onClick={handleAdminLogin} 
+                      disabled={isLoading}
+                      className="w-full bg-white hover:bg-white/90 text-black font-bold py-5 rounded-full transition"
+                    >
+                      Admin Login
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
 
-          {loginError && (
-            <div className="mt-8 p-5 bg-red-500/10 border border-red-500/30 text-red-300 rounded-3xl text-center font-medium">
-              {loginError}
-            </div>
-          )}
+            {loginError && (
+              <div className="mt-8 p-5 bg-red-500/10 border border-red-500/30 text-red-300 rounded-3xl text-center font-medium">
+                {loginError}
+              </div>
+            )}
 
-          {/* Hidden admin trigger */}
-          <button
-            onClick={() => setAdminClickCount(prev => prev + 1)}
-            className="absolute top-4 right-4 text-white/20 hover:text-white/50 transition"
-          >
-            <CheckCircle size={28} />
-          </button>
+            <button
+              onClick={() => setAdminClickCount(prev => prev + 1)}
+              className="absolute top-4 right-4 text-white/20 hover:text-white/50 transition"
+            >
+              <CheckCircle size={28} />
+            </button>
+          </div>
         </div>
+        <Echo />
       </div>
-      <Echo />
-    </div>
+    </FontWrapper>
   );
 };
 
