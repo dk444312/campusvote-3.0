@@ -42,6 +42,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
     const [clubMemberInputs, setClubMemberInputs] = useState<Record<string, string>>({});
     const [clubExpandedManifestos, setClubExpandedManifestos] = useState<Set<string>>(new Set());
     const [clubLikedCandidates, setClubLikedCandidates] = useState<Set<string>>(new Set());
+    const [animatingLikes, setAnimatingLikes] = useState<Set<string>>(new Set());
+    const [clubAnimatingLikes, setClubAnimatingLikes] = useState<Set<string>>(new Set());
     const supabase = getSupabase();
     // Fetch data
     useEffect(() => {
@@ -265,6 +267,59 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             }
             return newSet;
         });
+    };
+    const handleCandidateLike = async (candidateId: string, isFromImage: boolean = false, isClub: boolean = false) => {
+        const isLiking = likingIds.has(candidateId);
+        const setLiked = isClub ? setClubLikedCandidates : setLikedCandidates;
+        const liked = isClub ? clubLikedCandidates : likedCandidates;
+        const setCandidatesFunc = isClub ? setClubCandidates : setCandidates;
+        const voterId = isClub ? clubVoter?.code : voter.id;
+        const table = isClub ? 'club_candidate_likes' : 'candidate_likes';
+        const voterField = isClub ? 'voter_code' : 'voter_id';
+        if (isLiking || liked.has(candidateId)) return;
+        setLikingIds(prev => new Set([...prev, candidateId]));
+        if (isFromImage) {
+            const setAnimating = isClub ? setClubAnimatingLikes : setAnimatingLikes;
+            setAnimating(prev => new Set([...prev, candidateId]));
+            setTimeout(() => {
+                setAnimating(p => {
+                    const n = new Set(p);
+                    n.delete(candidateId);
+                    return n;
+                });
+            }, 800);
+        }
+        try {
+            const { error } = await supabase!
+                .from(table)
+                .insert({
+                    candidate_id: candidateId,
+                    [voterField]: voterId
+                });
+            if (error) {
+                if (error.code === '23505') {
+                    alert("You already liked this manifesto!");
+                } else {
+                    console.error(error);
+                    alert("Failed to like.");
+                }
+                return;
+            }
+            setCandidatesFunc(prev => prev.map(c =>
+                c.id === candidateId
+                    ? { ...c, like_count: (c.like_count || 0) + 1 }
+                    : c
+            ));
+            setLiked(prev => new Set([...prev, candidateId]));
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLikingIds(p => {
+                const n = new Set(p);
+                n.delete(candidateId);
+                return n;
+            });
+        }
     };
     if (loading) {
         return (
@@ -697,43 +752,6 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             const localLikes = candidate.like_count || 0;
                                             const isExpanded = clubExpandedManifestos.has(candidate.id);
                                             const isLiked = clubLikedCandidates.has(candidate.id);
-                                            const handleLike = async () => {
-                                                if (isLiking || isLiked) return;
-                                                setLikingIds(prev => new Set(prev).add(candidate.id));
-                                                try {
-                                                    const supabase = getSupabase();
-                                                    if (!supabase) return;
-                                                    const { error } = await supabase
-                                                        .from('club_candidate_likes')
-                                                        .insert({
-                                                            candidate_id: candidate.id,
-                                                            voter_code: clubVoter.code // Use voter_code instead of voter_id
-                                                        });
-                                                    if (error) {
-                                                        if (error.code === '23505') {
-                                                            alert("You already liked this manifesto!");
-                                                        } else {
-                                                            console.error(error);
-                                                            alert("Failed to like.");
-                                                        }
-                                                        return;
-                                                    }
-                                                    setClubCandidates(prev => prev.map(c =>
-                                                        c.id === candidate.id
-                                                            ? { ...c, like_count: (c.like_count || 0) + 1 }
-                                                            : c
-                                                    ));
-                                                    setClubLikedCandidates(prev => new Set(prev).add(candidate.id));
-                                                } catch (err) {
-                                                    console.error(err);
-                                                } finally {
-                                                    setLikingIds(prev => {
-                                                        const next = new Set(prev);
-                                                        next.delete(candidate.id);
-                                                        return next;
-                                                    });
-                                                }
-                                            };
                                             const handleShare = async () => {
                                                 const shareData = {
                                                     title: `${candidate.name} - ${candidate.position}`,
@@ -759,9 +777,9 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 }
                                             };
                                             return (
-                                                <div key={candidate.id} className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-2xl overflow-hidden border border-blue-200">
-                                                    <div className="p-4 flex items-center gap-3 border-b border-blue-200">
-                                                        <div className="w-12 h-12 rounded-full overflow-hidden bg-blue-100 flex-shrink-0">
+                                                <div key={candidate.id} className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
+                                                    <div className="p-3 flex items-center border-b border-gray-200">
+                                                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
                                                             <img
                                                                 src={candidate.image_url}
                                                                 alt={candidate.name}
@@ -769,41 +787,49 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 onError={(e) => (e.currentTarget.src = '/placeholder.png')}
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <h3 className="text-xl font-bold text-blue-900">{candidate.name}</h3>
-                                                            <p className="text-blue-700 text-sm">{candidate.position}</p>
+                                                        <div className="ml-3">
+                                                            <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
+                                                            <p className="text-sm text-gray-500">{candidate.position}</p>
                                                         </div>
                                                     </div>
-                                                    <img
-                                                        src={candidate.image_url}
-                                                        alt={candidate.name}
-                                                        className="w-full max-h-[70vh] object-contain bg-white"
-                                                        onError={(e) => (e.currentTarget.src = '/placeholder.png')}
-                                                    />
-                                                    <div className="p-4 space-y-2">
-                                                        <div className="flex items-center gap-6">
+                                                    <div className="relative">
+                                                        <img
+                                                            src={candidate.image_url}
+                                                            alt={candidate.name}
+                                                            className="w-full max-h-[70vh] object-contain bg-white cursor-pointer"
+                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                            onClick={() => handleCandidateLike(candidate.id, true, true)}
+                                                        />
+                                                        {clubAnimatingLikes.has(candidate.id) && (
+                                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                                <Heart size={80} className="text-pink-500 animate-[scale-0-to-1.5_0.8s_ease-out]" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-4 space-y-3">
+                                                        <div className="flex items-center space-x-6">
                                                             <button
-                                                                onClick={handleLike}
+                                                                onClick={() => handleCandidateLike(candidate.id, false, true)}
                                                                 disabled={isLiking}
                                                                 className="hover:opacity-80 transition disabled:opacity-50"
                                                             >
-                                                                <Heart size={28} className={`text-blue-600 ${isLiked ? 'fill-blue-600' : ''}`} />
+                                                                <Heart size={24} className={`${isLiked ? 'text-pink-500 fill-pink-500' : 'text-gray-600'}`} />
                                                             </button>
                                                             <button
                                                                 onClick={handleShare}
                                                                 className="hover:opacity-80 transition"
                                                             >
-                                                                <Share size={28} className="text-blue-600" />
+                                                                <Share size={24} className="text-gray-600" />
                                                             </button>
                                                         </div>
-                                                        <p className="text-blue-900 font-medium">{localLikes} likes</p>
-                                                        <p className={`text-blue-800 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
+                                                        <p className="font-semibold text-gray-900">{localLikes} likes</p>
+                                                        <p className={`text-gray-800 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
                                                             {candidate.manifesto || 'No manifesto provided.'}
                                                         </p>
                                                         {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
                                                             <button
                                                                 onClick={() => toggleManifesto(candidate.id, true)}
-                                                                className="text-blue-500 hover:text-blue-700 font-medium text-sm"
+                                                                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                                                             >
                                                                 {isExpanded ? 'less' : 'more'}
                                                             </button>
@@ -825,43 +851,6 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                             const localLikes = candidate.like_count || 0;
                                             const isExpanded = expandedManifestos.has(candidate.id);
                                             const isLiked = likedCandidates.has(candidate.id);
-                                            const handleLike = async () => {
-                                                if (isLiking || isLiked) return;
-                                                setLikingIds(prev => new Set(prev).add(candidate.id));
-                                                try {
-                                                    const supabase = getSupabase();
-                                                    if (!supabase) return;
-                                                    const { error } = await supabase
-                                                        .from('candidate_likes')
-                                                        .insert({
-                                                            candidate_id: candidate.id,
-                                                            voter_id: voter.id
-                                                        });
-                                                    if (error) {
-                                                        if (error.code === '23505') {
-                                                            alert("You already liked this manifesto!");
-                                                        } else {
-                                                            console.error(error);
-                                                            alert("Failed to like.");
-                                                        }
-                                                        return;
-                                                    }
-                                                    setCandidates(prev => prev.map(c =>
-                                                        c.id === candidate.id
-                                                            ? { ...c, like_count: (c.like_count || 0) + 1 }
-                                                            : c
-                                                    ));
-                                                    setLikedCandidates(prev => new Set(prev).add(candidate.id));
-                                                } catch (err) {
-                                                    console.error(err);
-                                                } finally {
-                                                    setLikingIds(prev => {
-                                                        const next = new Set(prev);
-                                                        next.delete(candidate.id);
-                                                        return next;
-                                                    });
-                                                }
-                                            };
                                             const handleShare = async () => {
                                                 const shareData = {
                                                     title: `${candidate.name} - ${candidate.position}`,
@@ -887,9 +876,9 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 }
                                             };
                                             return (
-                                                <div key={candidate.id} className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-2xl overflow-hidden border border-blue-200">
-                                                    <div className="p-4 flex items-center gap-3 border-b border-blue-200">
-                                                        <div className="w-12 h-12 rounded-full overflow-hidden bg-blue-100 flex-shrink-0">
+                                                <div key={candidate.id} className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
+                                                    <div className="p-3 flex items-center border-b border-gray-200">
+                                                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
                                                             <img
                                                                 src={candidate.image_url}
                                                                 alt={candidate.name}
@@ -897,41 +886,49 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 onError={(e) => (e.currentTarget.src = '/placeholder.png')}
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <h3 className="text-xl font-bold text-blue-900">{candidate.name}</h3>
-                                                            <p className="text-blue-700 text-sm">{candidate.position}</p>
+                                                        <div className="ml-3">
+                                                            <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
+                                                            <p className="text-sm text-gray-500">{candidate.position}</p>
                                                         </div>
                                                     </div>
-                                                    <img
-                                                        src={candidate.image_url}
-                                                        alt={candidate.name}
-                                                        className="w-full max-h-[70vh] object-contain bg-white"
-                                                        onError={(e) => (e.currentTarget.src = '/placeholder.png')}
-                                                    />
-                                                    <div className="p-4 space-y-2">
-                                                        <div className="flex items-center gap-6">
+                                                    <div className="relative">
+                                                        <img
+                                                            src={candidate.image_url}
+                                                            alt={candidate.name}
+                                                            className="w-full max-h-[70vh] object-contain bg-white cursor-pointer"
+                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                            onClick={() => handleCandidateLike(candidate.id, true, false)}
+                                                        />
+                                                        {animatingLikes.has(candidate.id) && (
+                                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                                <Heart size={80} className="text-pink-500 animate-[scale-0-to-1.5_0.8s_ease-out]" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-4 space-y-3">
+                                                        <div className="flex items-center space-x-6">
                                                             <button
-                                                                onClick={handleLike}
+                                                                onClick={() => handleCandidateLike(candidate.id, false, false)}
                                                                 disabled={isLiking}
                                                                 className="hover:opacity-80 transition disabled:opacity-50"
                                                             >
-                                                                <Heart size={28} className={`text-blue-600 ${isLiked ? 'fill-blue-600' : ''}`} />
+                                                                <Heart size={24} className={`${isLiked ? 'text-pink-500 fill-pink-500' : 'text-gray-600'}`} />
                                                             </button>
                                                             <button
                                                                 onClick={handleShare}
                                                                 className="hover:opacity-80 transition"
                                                             >
-                                                                <Share size={28} className="text-blue-600" />
+                                                                <Share size={24} className="text-gray-600" />
                                                             </button>
                                                         </div>
-                                                        <p className="text-blue-900 font-medium">{localLikes} likes</p>
-                                                        <p className={`text-blue-800 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
+                                                        <p className="font-semibold text-gray-900">{localLikes} likes</p>
+                                                        <p className={`text-gray-800 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
                                                             {candidate.manifesto || 'No manifesto provided.'}
                                                         </p>
                                                         {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
                                                             <button
                                                                 onClick={() => toggleManifesto(candidate.id)}
-                                                                className="text-blue-500 hover:text-blue-700 font-medium text-sm"
+                                                                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                                                             >
                                                                 {isExpanded ? 'less' : 'more'}
                                                             </button>
