@@ -323,8 +323,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
     };
     if (loading) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <Loader2 className="animate-spin text-blue-600" size={56} />
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <Loader2 className="animate-spin text-pink-500" size={56} />
             </div>
         );
     }
@@ -332,58 +332,58 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
         <>
             {/* Intro Modal */}
             {!voter.has_voted && showIntroModal && (
-                <div className="fixed inset-0 bg-blue-100/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-10 text-center border border-blue-200">
-                        <div className="mx-auto w-24 h-24 bg-gradient-to-r from-blue-50 to-blue-100 rounded-full flex items-center justify-center mb-6">
-                            <Vote size={48} className="text-blue-600" />
+                <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-10 text-center border border-gray-700">
+                        <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-700 to-gray-800 rounded-full flex items-center justify-center mb-6">
+                            <Vote size={48} className="text-pink-500" />
                         </div>
-                        <h1 className="text-4xl font-black text-blue-900 mb-4">Campus Vote 3.0</h1>
-                        <p className="text-lg text-blue-700 mb-8">Please review all candidates and vote wisely.</p>
-                        <p className="text-sm text-blue-600 mb-8">
-                            Voter Code: <span className="font-mono bg-blue-50 px-3 py-1 rounded">{voter.code}</span>
+                        <h1 className="text-4xl font-black text-white mb-4">Campus Vote 3.0</h1>
+                        <p className="text-lg text-gray-300 mb-8">Please review all candidates and vote wisely.</p>
+                        <p className="text-sm text-gray-400 mb-8">
+                            Voter Code: <span className="font-mono bg-gray-700 px-3 py-1 rounded">{voter.code}</span>
                         </p>
                         <button
                             onClick={() => setShowIntroModal(false)}
-                            className="w-full py-5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl text-xl transition border border-blue-200"
+                            className="w-full py-5 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold rounded-2xl text-xl transition border border-gray-700"
                         >
                             Start Voting
                         </button>
                     </div>
                 </div>
             )}
-            <div className="min-h-screen bg-white flex flex-col md:flex-row">
+            <div className="min-h-screen bg-gray-900 flex flex-col md:flex-row">
                 {/* Desktop Sidebar */}
-                <aside className="hidden md:flex flex-col w-64 bg-gradient-to-b from-blue-50 to-blue-100 text-blue-900 shadow-2xl border-r border-blue-200">
-                    <div className="p-6 border-b border-blue-200">
-                        <h1 className="text-xl font-bold text-blue-900">Campus Vote 3.0</h1>
-                        <p className="text-xs opacity-80 mt-1 text-blue-700">Voter Portal</p>
+                <aside className="hidden md:flex flex-col w-64 bg-gradient-to-b from-gray-800 to-gray-900 text-white shadow-2xl border-r border-gray-700">
+                    <div className="p-6 border-b border-gray-700">
+                        <h1 className="text-xl font-bold text-white">Campus Vote 3.0</h1>
+                        <p className="text-xs opacity-80 mt-1 text-gray-400">Voter Portal</p>
                     </div>
                     <nav className="flex-1 p-4 space-y-2">
                         <button
                             onClick={() => setActiveTab('ballot')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'ballot' ? 'bg-blue-100 shadow-lg text-blue-900' : 'hover:bg-blue-100 text-blue-700'
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'ballot' ? 'bg-gray-700 shadow-lg text-white' : 'hover:bg-gray-700 text-gray-300'
                                 }`}
                         >
                             <Vote size={20} />
                             <span>Ballot</span>
-                            {voter.has_voted && <span className="ml-auto text-xs bg-blue-200 px-2 py-1 rounded text-blue-900">✓ Voted</span>}
+                            {voter.has_voted && <span className="ml-auto text-xs bg-gray-600 px-2 py-1 rounded text-white">✓ Voted</span>}
                         </button>
                         <button
                             onClick={() => setActiveTab('results')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'results'
-                                    ? 'bg-blue-100 shadow-lg text-blue-900'
+                                    ? 'bg-gray-700 shadow-lg text-white'
                                     : !isResultsPublic
-                                        ? 'opacity-60 cursor-not-allowed text-blue-500'
-                                        : 'hover:bg-blue-100 text-blue-700'
+                                        ? 'opacity-60 cursor-not-allowed text-gray-500'
+                                        : 'hover:bg-gray-700 text-gray-300'
                                 }`}
                         >
                             <Trophy size={20} />
                             <span>Results</span>
-                            {!isResultsPublic && <span className="ml-auto text-xs text-blue-500">Hidden</span>}
+                            {!isResultsPublic && <span className="ml-auto text-xs text-gray-500">Hidden</span>}
                         </button>
                         <button
                             onClick={() => setActiveTab('socials')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'socials' ? 'bg-blue-100 shadow-lg text-blue-900' : 'hover:bg-blue-100 text-blue-700'
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'socials' ? 'bg-gray-700 shadow-lg text-white' : 'hover:bg-gray-700 text-gray-300'
                                 }`}
                         >
                             <Users size={20} />
@@ -391,15 +391,15 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                         </button>
                         <button
                             onClick={() => setActiveTab('club-elections')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'club-elections' ? 'bg-blue-100 shadow-lg text-blue-900' : 'hover:bg-blue-100 text-blue-700'
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'club-elections' ? 'bg-gray-700 shadow-lg text-white' : 'hover:bg-gray-700 text-gray-300'
                                 }`}
                         >
                             <Users size={20} />
                             <span>Club Elections</span>
                         </button>
                     </nav>
-                    <div className="p-4 border-t border-blue-200">
-                        <button onClick={onLogout} className="w-full flex items-center gap-3 text-blue-700 hover:text-blue-900">
+                    <div className="p-4 border-t border-gray-700">
+                        <button onClick={onLogout} className="w-full flex items-center gap-3 text-gray-300 hover:text-white">
                             <LogOut size={20} />
                             <span>Logout</span>
                         </button>
@@ -407,58 +407,58 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                 </aside>
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col">
-                    <header className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-900 shadow-lg border-b border-blue-200">
+                    <header className="bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg border-b border-gray-700">
                         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-blue-900">
+                                <h1 className="text-2xl font-bold text-white">
                                     {clubMode ? `${currentClub?.name} ` : ''}
                                     {activeTab === 'ballot' && 'Your Ballot'}
                                     {activeTab === 'results' && 'Election Results'}
                                     {activeTab === 'socials' && 'Candidate Profiles'}
                                     {activeTab === 'club-elections' && !clubMode && 'Club Elections'}
                                 </h1>
-                                <p className="text-sm opacity-90 mt-1 text-blue-700">Voter Code: {voter.code}</p>
+                                <p className="text-sm opacity-90 mt-1 text-gray-400">Voter Code: {voter.code}</p>
                             </div>
-                            <button onClick={onLogout} className="md:hidden text-blue-900">
+                            <button onClick={onLogout} className="md:hidden text-white">
                                 <LogOut size={24} />
                             </button>
                         </div>
                     </header>
-                    <main className="flex-1 max-w-5xl mx-auto w-full p-6 pb-24 md:pb-6 relative bg-white text-blue-900">
+                    <main className="flex-1 max-w-5xl mx-auto w-full p-6 pb-24 md:pb-6 relative bg-gray-900 text-white">
                         {/* BALLOT TAB (Main or Club) */}
                         {activeTab === 'ballot' && (
                             <div className="space-y-10 relative">
                                 {clubMode ? (
                                     // Club Ballot
                                     isClubBallotHidden ? (
-                                        <div className="text-center py-20 bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl border border-blue-200 shadow-xl">
-                                            <Lock size={80} className="text-blue-300 mx-auto mb-6" />
-                                            <p className="text-2xl font-bold text-blue-900">Voting is Closed</p>
-                                            <p className="text-blue-700 mt-4">The ballot has been hidden by the administrator.</p>
+                                        <div className="text-center py-20 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-xl">
+                                            <Lock size={80} className="text-gray-500 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Voting is Closed</p>
+                                            <p className="text-gray-300 mt-4">The ballot has been hidden by the administrator.</p>
                                         </div>
                                     ) : !hasElectionStarted(true) ? (
-                                        <div className="text-center py-20 bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl border border-blue-200 shadow-xl">
-                                            <Clock size={80} className="text-blue-300 mx-auto mb-6" />
-                                            <p className="text-2xl font-bold text-blue-900">Election Not Started Yet</p>
-                                            <p className="text-blue-700 mt-4">The club election will start on {clubStartDate?.toLocaleString()}.</p>
+                                        <div className="text-center py-20 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-xl">
+                                            <Clock size={80} className="text-gray-500 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Election Not Started Yet</p>
+                                            <p className="text-gray-300 mt-4">The club election will start on {clubStartDate?.toLocaleString()}.</p>
                                         </div>
                                     ) : (
                                         <>
                                             {clubVoter?.has_voted && (
-                                                <div className="absolute inset-0 bg-blue-100/40 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
-                                                    <div className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-2xl p-10 text-center max-w-lg border border-blue-200">
-                                                        <div className="mx-auto w-32 h-32 bg-gradient-to-r from-blue-50 to-blue-100 rounded-full flex items-center justify-center mb-6 border border-blue-200">
-                                                            <Check size={64} className="text-blue-600" />
+                                                <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
+                                                    <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl shadow-2xl p-10 text-center max-w-lg border border-gray-700">
+                                                        <div className="mx-auto w-32 h-32 bg-gradient-to-r from-gray-700 to-gray-800 rounded-full flex items-center justify-center mb-6 border border-gray-700">
+                                                            <Check size={64} className="text-pink-500" />
                                                         </div>
-                                                        <h2 className="text-4xl font-black text-blue-900 mb-4">Thank You!</h2>
-                                                        <p className="text-xl text-blue-900">Your club vote has been recorded.</p>
-                                                        <p className="text-lg text-blue-700 mt-4">View it below for reference.</p>
+                                                        <h2 className="text-4xl font-black text-white mb-4">Thank You!</h2>
+                                                        <p className="text-xl text-white">Your club vote has been recorded.</p>
+                                                        <p className="text-lg text-gray-300 mt-4">View it below for reference.</p>
                                                     </div>
                                                 </div>
                                             )}
                                             {Object.entries(clubCandidatesByPosition).map(([position, positionCandidates]) => (
-                                                <div key={position} className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-xl border border-blue-200 p-8">
-                                                    <h3 className="text-2xl font-bold text-blue-900 mb-8 flex items-center gap-3">
+                                                <div key={position} className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl shadow-xl border border-gray-700 p-8">
+                                                    <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
                                                         <Briefcase size={32} />
                                                         Vote for {position}
                                                     </h3>
@@ -469,11 +469,11 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 <div
                                                                     key={candidate.id}
                                                                     onClick={() => handleClubSelect(position, candidate.id)}
-                                                                    className={`bg-white rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${isSelected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-blue-200'
+                                                                    className={`bg-gray-800 rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${isSelected ? 'border-pink-500 ring-2 ring-pink-300' : 'border-gray-700'
                                                                         } ${clubVoter?.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
                                                                 >
                                                                     <div className="flex">
-                                                                        <div className="w-32 h-32 bg-white flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-blue-200">
+                                                                        <div className="w-32 h-32 bg-gray-800 flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-gray-700">
                                                                             <img
                                                                                 src={candidate.image_url}
                                                                                 alt={candidate.name}
@@ -482,13 +482,13 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                             />
                                                                         </div>
                                                                         <div className="p-5 flex-1">
-                                                                            <h4 className="text-xl font-bold text-blue-900">{candidate.name}</h4>
-                                                                            <p className="text-blue-700 mt-3 line-clamp-3 italic">
+                                                                            <h4 className="text-xl font-bold text-white">{candidate.name}</h4>
+                                                                            <p className="text-gray-300 mt-3 line-clamp-3 italic">
                                                                                 "{candidate.manifesto || candidate.description || 'No manifesto'}"
                                                                             </p>
                                                                         </div>
                                                                         <div className="p-5 flex items-center">
-                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-blue-200'
+                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-pink-500 bg-pink-500' : 'border-gray-700'
                                                                                 }`}>
                                                                                 {isSelected && <Check size={24} className="text-white" />}
                                                                             </div>
@@ -507,8 +507,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                             onClick={handleClubVote}
                                                             disabled={!clubAllPositionsVoted || clubSubmitting}
                                                             className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${clubAllPositionsVoted && !clubSubmitting
-                                                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
-                                                                    : 'bg-blue-200 text-blue-500 cursor-not-allowed'
+                                                                    ? 'bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white'
+                                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                                 }`}
                                                         >
                                                             {clubSubmitting ? 'Submitting Vote...' : 'Submit Final Ballot'}
@@ -521,34 +521,34 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                 ) : (
                                     // Main Ballot
                                     isBallotHidden ? (
-                                        <div className="text-center py-20 bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl border border-blue-200 shadow-xl">
-                                            <Lock size={80} className="text-blue-300 mx-auto mb-6" />
-                                            <p className="text-2xl font-bold text-blue-900">Voting is Closed</p>
-                                            <p className="text-blue-700 mt-4">The ballot has been hidden by the administrator.</p>
+                                        <div className="text-center py-20 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-xl">
+                                            <Lock size={80} className="text-gray-500 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Voting is Closed</p>
+                                            <p className="text-gray-300 mt-4">The ballot has been hidden by the administrator.</p>
                                         </div>
                                     ) : !hasElectionStarted() ? (
-                                        <div className="text-center py-20 bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl border border-blue-200 shadow-xl">
-                                            <Clock size={80} className="text-blue-300 mx-auto mb-6" />
-                                            <p className="text-2xl font-bold text-blue-900">Election Not Started Yet</p>
-                                            <p className="text-blue-700 mt-4">The election will start on {startDate?.toLocaleString()}.</p>
+                                        <div className="text-center py-20 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-xl">
+                                            <Clock size={80} className="text-gray-500 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Election Not Started Yet</p>
+                                            <p className="text-gray-300 mt-4">The election will start on {startDate?.toLocaleString()}.</p>
                                         </div>
                                     ) : (
                                         <>
                                             {voter.has_voted && (
-                                                <div className="absolute inset-0 bg-blue-100/40 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
-                                                    <div className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-2xl p-10 text-center max-w-lg border border-blue-200">
-                                                        <div className="mx-auto w-32 h-32 bg-gradient-to-r from-blue-50 to-blue-100 rounded-full flex items-center justify-center mb-6 border border-blue-200">
-                                                            <Check size={64} className="text-blue-600" />
+                                                <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
+                                                    <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl shadow-2xl p-10 text-center max-w-lg border border-gray-700">
+                                                        <div className="mx-auto w-32 h-32 bg-gradient-to-r from-gray-700 to-gray-800 rounded-full flex items-center justify-center mb-6 border border-gray-700">
+                                                            <Check size={64} className="text-pink-500" />
                                                         </div>
-                                                        <h2 className="text-4xl font-black text-blue-900 mb-4">Thank You!</h2>
-                                                        <p className="text-xl text-blue-900">Your vote has been recorded.</p>
-                                                        <p className="text-lg text-blue-700 mt-4">View it below for reference.</p>
+                                                        <h2 className="text-4xl font-black text-white mb-4">Thank You!</h2>
+                                                        <p className="text-xl text-white">Your vote has been recorded.</p>
+                                                        <p className="text-lg text-gray-300 mt-4">View it below for reference.</p>
                                                     </div>
                                                 </div>
                                             )}
                                             {Object.entries(candidatesByPosition).map(([position, positionCandidates]) => (
-                                                <div key={position} className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-xl border border-blue-200 p-8">
-                                                    <h3 className="text-2xl font-bold text-blue-900 mb-8 flex items-center gap-3">
+                                                <div key={position} className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl shadow-xl border border-gray-700 p-8">
+                                                    <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
                                                         <Briefcase size={32} />
                                                         Vote for {position}
                                                     </h3>
@@ -559,11 +559,11 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 <div
                                                                     key={candidate.id}
                                                                     onClick={() => handleSelect(position, candidate.id)}
-                                                                    className={`bg-white rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${isSelected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-blue-200'
+                                                                    className={`bg-gray-800 rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${isSelected ? 'border-pink-500 ring-2 ring-pink-300' : 'border-gray-700'
                                                                         } ${voter.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
                                                                 >
                                                                     <div className="flex">
-                                                                        <div className="w-32 h-32 bg-white flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-blue-200">
+                                                                        <div className="w-32 h-32 bg-gray-800 flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-gray-700">
                                                                             <img
                                                                                 src={candidate.image_url}
                                                                                 alt={candidate.name}
@@ -572,13 +572,13 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                             />
                                                                         </div>
                                                                         <div className="p-5 flex-1">
-                                                                            <h4 className="text-xl font-bold text-blue-900">{candidate.name}</h4>
-                                                                            <p className="text-blue-700 mt-3 line-clamp-3 italic">
+                                                                            <h4 className="text-xl font-bold text-white">{candidate.name}</h4>
+                                                                            <p className="text-gray-300 mt-3 line-clamp-3 italic">
                                                                                 "{candidate.manifesto || candidate.description || 'No manifesto'}"
                                                                             </p>
                                                                         </div>
                                                                         <div className="p-5 flex items-center">
-                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-blue-200'
+                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-pink-500 bg-pink-500' : 'border-gray-700'
                                                                                 }`}>
                                                                                 {isSelected && <Check size={24} className="text-white" />}
                                                                             </div>
@@ -597,8 +597,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                             onClick={handleVote}
                                                             disabled={!allPositionsVoted || submitting}
                                                             className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${allPositionsVoted && !submitting
-                                                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
-                                                                    : 'bg-blue-200 text-blue-500 cursor-not-allowed'
+                                                                    ? 'bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white'
+                                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                                 }`}
                                                         >
                                                             {submitting ? 'Submitting Vote...' : 'Submit Final Ballot'}
@@ -623,8 +623,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 const maxVotes = sorted[0]?.vote_count || 0;
                                                 const winners = sorted.filter(r => r.vote_count === maxVotes);
                                                 return (
-                                                    <div key={position} className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
-                                                        <div className="bg-blue-100 text-blue-900 px-6 py-4 border-b border-blue-200">
+                                                    <div key={position} className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl shadow-xl border border-gray-700 overflow-hidden">
+                                                        <div className="bg-gray-800 text-white px-6 py-4 border-b border-gray-700">
                                                             <h3 className="text-xl font-bold flex items-center gap-3">
                                                                 <Briefcase size={24} />
                                                                 {position}
@@ -637,22 +637,22 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                     <div
                                                                         key={result.candidate_name}
                                                                         className={`flex items-center justify-between gap-4 p-4 rounded-xl ${isWinner
-                                                                                ? 'bg-blue-100 border border-blue-500'
-                                                                                : 'bg-white border border-blue-200'
+                                                                                ? 'bg-gray-700 border border-pink-500'
+                                                                                : 'bg-gray-800 border border-gray-700'
                                                                             }`}
                                                                     >
                                                                         <div className="flex items-center gap-3">
-                                                                            {isWinner && <Trophy size={20} className="text-blue-600" />}
-                                                                            <h4 className="text-lg font-semibold text-blue-900">
+                                                                            {isWinner && <Trophy size={20} className="text-pink-500" />}
+                                                                            <h4 className="text-lg font-semibold text-white">
                                                                                 {result.candidate_name}
                                                                                 {isWinner && winners.length > 1 && ' (Tie)'}
                                                                             </h4>
                                                                         </div>
                                                                         <div className="flex items-center gap-4">
-                                                                            <p className="text-xl font-bold text-blue-900">
+                                                                            <p className="text-xl font-bold text-white">
                                                                                 {result.vote_count} votes
                                                                             </p>
-                                                                            <span className="text-2xl font-bold text-blue-400">
+                                                                            <span className="text-2xl font-bold text-pink-400">
                                                                                 #{index + 1}
                                                                             </span>
                                                                         </div>
@@ -664,16 +664,16 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 );
                                             })
                                         ) : (
-                                            <div className="text-center py-20 bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl border border-blue-200 shadow-xl">
-                                                <Trophy size={80} className="text-blue-300 mx-auto mb-6" />
-                                                <p className="text-xl text-blue-700">No votes recorded yet.</p>
+                                            <div className="text-center py-20 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-xl">
+                                                <Trophy size={80} className="text-gray-500 mx-auto mb-6" />
+                                                <p className="text-xl text-gray-300">No votes recorded yet.</p>
                                             </div>
                                         )
                                     ) : (
-                                        <div className="text-center py-20 bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl border border-blue-200 shadow-xl">
-                                            <Lock size={80} className="text-blue-300 mx-auto mb-6" />
-                                            <p className="text-2xl font-bold text-blue-900">Results are Hidden</p>
-                                            <p className="text-blue-700 mt-4">The administrator will make results public soon.</p>
+                                        <div className="text-center py-20 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-xl">
+                                            <Lock size={80} className="text-gray-500 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Results are Hidden</p>
+                                            <p className="text-gray-300 mt-4">The administrator will make results public soon.</p>
                                         </div>
                                     )
                                 ) : (
@@ -685,8 +685,8 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 const maxVotes = sorted[0]?.vote_count || 0;
                                                 const winners = sorted.filter(r => r.vote_count === maxVotes);
                                                 return (
-                                                    <div key={position} className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
-                                                        <div className="bg-blue-100 text-blue-900 px-6 py-4 border-b border-blue-200">
+                                                    <div key={position} className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl shadow-xl border border-gray-700 overflow-hidden">
+                                                        <div className="bg-gray-800 text-white px-6 py-4 border-b border-gray-700">
                                                             <h3 className="text-xl font-bold flex items-center gap-3">
                                                                 <Briefcase size={24} />
                                                                 {position}
@@ -699,22 +699,22 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                     <div
                                                                         key={result.candidate_name}
                                                                         className={`flex items-center justify-between gap-4 p-4 rounded-xl ${isWinner
-                                                                                ? 'bg-blue-100 border border-blue-500'
-                                                                                : 'bg-white border border-blue-200'
+                                                                                ? 'bg-gray-700 border border-pink-500'
+                                                                                : 'bg-gray-800 border border-gray-700'
                                                                             }`}
                                                                     >
                                                                         <div className="flex items-center gap-3">
-                                                                            {isWinner && <Trophy size={20} className="text-blue-600" />}
-                                                                            <h4 className="text-lg font-semibold text-blue-900">
+                                                                            {isWinner && <Trophy size={20} className="text-pink-500" />}
+                                                                            <h4 className="text-lg font-semibold text-white">
                                                                                 {result.candidate_name}
                                                                                 {isWinner && winners.length > 1 && ' (Tie)'}
                                                                             </h4>
                                                                         </div>
                                                                         <div className="flex items-center gap-4">
-                                                                            <p className="text-xl font-bold text-blue-900">
+                                                                            <p className="text-xl font-bold text-white">
                                                                                 {result.vote_count} votes
                                                                             </p>
-                                                                            <span className="text-2xl font-bold text-blue-400">
+                                                                            <span className="text-2xl font-bold text-pink-400">
                                                                                 #{index + 1}
                                                                             </span>
                                                                         </div>
@@ -726,16 +726,16 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 );
                                             })
                                         ) : (
-                                            <div className="text-center py-20 bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl border border-blue-200 shadow-xl">
-                                                <Trophy size={80} className="text-blue-300 mx-auto mb-6" />
-                                                <p className="text-xl text-blue-700">No votes recorded yet.</p>
+                                            <div className="text-center py-20 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-xl">
+                                                <Trophy size={80} className="text-gray-500 mx-auto mb-6" />
+                                                <p className="text-xl text-gray-300">No votes recorded yet.</p>
                                             </div>
                                         )
                                     ) : (
-                                        <div className="text-center py-20 bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl border border-blue-200 shadow-xl">
-                                            <Lock size={80} className="text-blue-300 mx-auto mb-6" />
-                                            <p className="text-2xl font-bold text-blue-900">Results are Hidden</p>
-                                            <p className="text-blue-700 mt-4">The administrator will make results public soon.</p>
+                                        <div className="text-center py-20 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-xl">
+                                            <Lock size={80} className="text-gray-500 mx-auto mb-6" />
+                                            <p className="text-2xl font-bold text-white">Results are Hidden</p>
+                                            <p className="text-gray-300 mt-4">The administrator will make results public soon.</p>
                                         </div>
                                     )
                                 )}
@@ -743,206 +743,226 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                         )}
                         {/* SOCIALS TAB (Main or Club) */}
                         {activeTab === 'socials' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-8">
-                                {clubMode ? (
-                                    // Club Socials
-                                    clubCandidates.length > 0 ? (
-                                        clubCandidates.map((candidate) => {
-                                            const isLiking = likingIds.has(candidate.id);
-                                            const localLikes = candidate.like_count || 0;
-                                            const isExpanded = clubExpandedManifestos.has(candidate.id);
-                                            const isLiked = clubLikedCandidates.has(candidate.id);
-                                            const handleShare = async () => {
-                                                const shareData = {
-                                                    title: `${candidate.name} - ${candidate.position}`,
-                                                    text: candidate.manifesto || 'Check out this candidate!',
-                                                    url: window.location.href,
+                            <div className="py-8">
+                                <div className="mb-6">
+                                    <h2 className="text-lg font-semibold mb-2 text-white">Stories</h2>
+                                    <div className="flex overflow-x-auto space-x-3 pb-2">
+                                        {(clubMode ? clubCandidates : candidates).map(candidate => (
+                                            <div key={`story-${candidate.id}`} className="flex flex-col items-center flex-shrink-0 w-20">
+                                                <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-pink-500">
+                                                    <img 
+                                                        src={candidate.image_url} 
+                                                        alt={candidate.name} 
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                    />
+                                                </div>
+                                                <p className="text-xs mt-1 text-white truncate w-full text-center">{candidate.name.split(' ')[0]}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {clubMode ? (
+                                        // Club Socials
+                                        clubCandidates.length > 0 ? (
+                                            clubCandidates.map((candidate) => {
+                                                const isLiking = likingIds.has(candidate.id);
+                                                const localLikes = candidate.like_count || 0;
+                                                const isExpanded = clubExpandedManifestos.has(candidate.id);
+                                                const isLiked = clubLikedCandidates.has(candidate.id);
+                                                const handleShare = async () => {
+                                                    const shareData = {
+                                                        title: `${candidate.name} - ${candidate.position}`,
+                                                        text: candidate.manifesto || 'Check out this candidate!',
+                                                        url: window.location.href,
+                                                    };
+                                                    if (navigator.share) {
+                                                        try {
+                                                            await navigator.share(shareData);
+                                                        } catch (err) {
+                                                            console.error('Share failed:', err);
+                                                        }
+                                                    } else {
+                                                        // Fallback: Copy to clipboard
+                                                        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                                                        try {
+                                                            await navigator.clipboard.writeText(shareText);
+                                                            alert('Candidate info copied to clipboard!');
+                                                        } catch (err) {
+                                                            console.error('Copy failed:', err);
+                                                            alert('Failed to copy. Please copy manually: ' + shareText);
+                                                        }
+                                                    }
                                                 };
-                                                if (navigator.share) {
-                                                    try {
-                                                        await navigator.share(shareData);
-                                                    } catch (err) {
-                                                        console.error('Share failed:', err);
-                                                    }
-                                                } else {
-                                                    // Fallback: Copy to clipboard
-                                                    const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-                                                    try {
-                                                        await navigator.clipboard.writeText(shareText);
-                                                        alert('Candidate info copied to clipboard!');
-                                                    } catch (err) {
-                                                        console.error('Copy failed:', err);
-                                                        alert('Failed to copy. Please copy manually: ' + shareText);
-                                                    }
-                                                }
-                                            };
-                                            return (
-                                                <div key={candidate.id} className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
-                                                    <div className="p-3 flex items-center border-b border-gray-200">
-                                                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                                                return (
+                                                    <div key={candidate.id} className="bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-gray-700">
+                                                        <div className="p-3 flex items-center border-b border-gray-700">
+                                                            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                                                                <img
+                                                                    src={candidate.image_url}
+                                                                    alt={candidate.name}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                                />
+                                                            </div>
+                                                            <div className="ml-3">
+                                                                <h3 className="font-semibold text-white">{candidate.name}</h3>
+                                                                <p className="text-sm text-gray-400">{candidate.position}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="relative">
                                                             <img
                                                                 src={candidate.image_url}
                                                                 alt={candidate.name}
-                                                                className="w-full h-full object-cover"
+                                                                className="w-full max-h-[70vh] object-contain bg-gray-900 cursor-pointer"
                                                                 onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                                onClick={() => handleCandidateLike(candidate.id, true, true)}
                                                             />
+                                                            {clubAnimatingLikes.has(candidate.id) && (
+                                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                                    <Heart size={80} className="text-pink-500 animate-[scale-0-to-1.5_0.8s_ease-out]" />
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        <div className="ml-3">
-                                                            <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
-                                                            <p className="text-sm text-gray-500">{candidate.position}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="relative">
-                                                        <img
-                                                            src={candidate.image_url}
-                                                            alt={candidate.name}
-                                                            className="w-full max-h-[70vh] object-contain bg-white cursor-pointer"
-                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
-                                                            onClick={() => handleCandidateLike(candidate.id, true, true)}
-                                                        />
-                                                        {clubAnimatingLikes.has(candidate.id) && (
-                                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                                <Heart size={80} className="text-pink-500 animate-[scale-0-to-1.5_0.8s_ease-out]" />
+                                                        <div className="p-4 space-y-3">
+                                                            <div className="flex items-center space-x-6">
+                                                                <button
+                                                                    onClick={() => handleCandidateLike(candidate.id, false, true)}
+                                                                    disabled={isLiking}
+                                                                    className="hover:opacity-80 transition disabled:opacity-50"
+                                                                >
+                                                                    <Heart size={24} className={`${isLiked ? 'text-pink-500 fill-pink-500' : 'text-gray-400'}`} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={handleShare}
+                                                                    className="hover:opacity-80 transition"
+                                                                >
+                                                                    <Share size={24} className="text-gray-400" />
+                                                                </button>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="p-4 space-y-3">
-                                                        <div className="flex items-center space-x-6">
-                                                            <button
-                                                                onClick={() => handleCandidateLike(candidate.id, false, true)}
-                                                                disabled={isLiking}
-                                                                className="hover:opacity-80 transition disabled:opacity-50"
-                                                            >
-                                                                <Heart size={24} className={`${isLiked ? 'text-pink-500 fill-pink-500' : 'text-gray-600'}`} />
-                                                            </button>
-                                                            <button
-                                                                onClick={handleShare}
-                                                                className="hover:opacity-80 transition"
-                                                            >
-                                                                <Share size={24} className="text-gray-600" />
-                                                            </button>
+                                                            <p className="font-semibold text-white">{localLikes} likes</p>
+                                                            <p className={`text-gray-300 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
+                                                                {candidate.manifesto || 'No manifesto provided.'}
+                                                            </p>
+                                                            {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
+                                                                <button
+                                                                    onClick={() => toggleManifesto(candidate.id, true)}
+                                                                    className="text-gray-500 hover:text-gray-300 font-medium text-sm"
+                                                                >
+                                                                    {isExpanded ? 'less' : 'more'}
+                                                                </button>
+                                                            )}
                                                         </div>
-                                                        <p className="font-semibold text-gray-900">{localLikes} likes</p>
-                                                        <p className={`text-gray-800 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
-                                                            {candidate.manifesto || 'No manifesto provided.'}
-                                                        </p>
-                                                        {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
-                                                            <button
-                                                                onClick={() => toggleManifesto(candidate.id, true)}
-                                                                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                                                            >
-                                                                {isExpanded ? 'less' : 'more'}
-                                                            </button>
-                                                        )}
                                                     </div>
-                                                </div>
-                                            );
-                                        })
+                                                );
+                                            })
+                                        ) : (
+                                            <p className="col-span-full text-center text-gray-300 py-20 text-xl">
+                                                No candidates available.
+                                            </p>
+                                        )
                                     ) : (
-                                        <p className="col-span-full text-center text-blue-700 py-20 text-xl">
-                                            No candidates available.
-                                        </p>
-                                    )
-                                ) : (
-                                    // Main Socials
-                                    candidates.length > 0 ? (
-                                        candidates.map((candidate) => {
-                                            const isLiking = likingIds.has(candidate.id);
-                                            const localLikes = candidate.like_count || 0;
-                                            const isExpanded = expandedManifestos.has(candidate.id);
-                                            const isLiked = likedCandidates.has(candidate.id);
-                                            const handleShare = async () => {
-                                                const shareData = {
-                                                    title: `${candidate.name} - ${candidate.position}`,
-                                                    text: candidate.manifesto || 'Check out this candidate!',
-                                                    url: window.location.href,
+                                        // Main Socials
+                                        candidates.length > 0 ? (
+                                            candidates.map((candidate) => {
+                                                const isLiking = likingIds.has(candidate.id);
+                                                const localLikes = candidate.like_count || 0;
+                                                const isExpanded = expandedManifestos.has(candidate.id);
+                                                const isLiked = likedCandidates.has(candidate.id);
+                                                const handleShare = async () => {
+                                                    const shareData = {
+                                                        title: `${candidate.name} - ${candidate.position}`,
+                                                        text: candidate.manifesto || 'Check out this candidate!',
+                                                        url: window.location.href,
+                                                    };
+                                                    if (navigator.share) {
+                                                        try {
+                                                            await navigator.share(shareData);
+                                                        } catch (err) {
+                                                            console.error('Share failed:', err);
+                                                        }
+                                                    } else {
+                                                        // Fallback: Copy to clipboard
+                                                        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                                                        try {
+                                                            await navigator.clipboard.writeText(shareText);
+                                                            alert('Candidate info copied to clipboard!');
+                                                        } catch (err) {
+                                                            console.error('Copy failed:', err);
+                                                            alert('Failed to copy. Please copy manually: ' + shareText);
+                                                        }
+                                                    }
                                                 };
-                                                if (navigator.share) {
-                                                    try {
-                                                        await navigator.share(shareData);
-                                                    } catch (err) {
-                                                        console.error('Share failed:', err);
-                                                    }
-                                                } else {
-                                                    // Fallback: Copy to clipboard
-                                                    const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-                                                    try {
-                                                        await navigator.clipboard.writeText(shareText);
-                                                        alert('Candidate info copied to clipboard!');
-                                                    } catch (err) {
-                                                        console.error('Copy failed:', err);
-                                                        alert('Failed to copy. Please copy manually: ' + shareText);
-                                                    }
-                                                }
-                                            };
-                                            return (
-                                                <div key={candidate.id} className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
-                                                    <div className="p-3 flex items-center border-b border-gray-200">
-                                                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                                                return (
+                                                    <div key={candidate.id} className="bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-gray-700">
+                                                        <div className="p-3 flex items-center border-b border-gray-700">
+                                                            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                                                                <img
+                                                                    src={candidate.image_url}
+                                                                    alt={candidate.name}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                                />
+                                                            </div>
+                                                            <div className="ml-3">
+                                                                <h3 className="font-semibold text-white">{candidate.name}</h3>
+                                                                <p className="text-sm text-gray-400">{candidate.position}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="relative">
                                                             <img
                                                                 src={candidate.image_url}
                                                                 alt={candidate.name}
-                                                                className="w-full h-full object-cover"
+                                                                className="w-full max-h-[70vh] object-contain bg-gray-900 cursor-pointer"
                                                                 onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                                onClick={() => handleCandidateLike(candidate.id, true, false)}
                                                             />
+                                                            {animatingLikes.has(candidate.id) && (
+                                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                                    <Heart size={80} className="text-pink-500 animate-[scale-0-to-1.5_0.8s_ease-out]" />
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        <div className="ml-3">
-                                                            <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
-                                                            <p className="text-sm text-gray-500">{candidate.position}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="relative">
-                                                        <img
-                                                            src={candidate.image_url}
-                                                            alt={candidate.name}
-                                                            className="w-full max-h-[70vh] object-contain bg-white cursor-pointer"
-                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
-                                                            onClick={() => handleCandidateLike(candidate.id, true, false)}
-                                                        />
-                                                        {animatingLikes.has(candidate.id) && (
-                                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                                <Heart size={80} className="text-pink-500 animate-[scale-0-to-1.5_0.8s_ease-out]" />
+                                                        <div className="p-4 space-y-3">
+                                                            <div className="flex items-center space-x-6">
+                                                                <button
+                                                                    onClick={() => handleCandidateLike(candidate.id, false, false)}
+                                                                    disabled={isLiking}
+                                                                    className="hover:opacity-80 transition disabled:opacity-50"
+                                                                >
+                                                                    <Heart size={24} className={`${isLiked ? 'text-pink-500 fill-pink-500' : 'text-gray-400'}`} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={handleShare}
+                                                                    className="hover:opacity-80 transition"
+                                                                >
+                                                                    <Share size={24} className="text-gray-400" />
+                                                                </button>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="p-4 space-y-3">
-                                                        <div className="flex items-center space-x-6">
-                                                            <button
-                                                                onClick={() => handleCandidateLike(candidate.id, false, false)}
-                                                                disabled={isLiking}
-                                                                className="hover:opacity-80 transition disabled:opacity-50"
-                                                            >
-                                                                <Heart size={24} className={`${isLiked ? 'text-pink-500 fill-pink-500' : 'text-gray-600'}`} />
-                                                            </button>
-                                                            <button
-                                                                onClick={handleShare}
-                                                                className="hover:opacity-80 transition"
-                                                            >
-                                                                <Share size={24} className="text-gray-600" />
-                                                            </button>
+                                                            <p className="font-semibold text-white">{localLikes} likes</p>
+                                                            <p className={`text-gray-300 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
+                                                                {candidate.manifesto || 'No manifesto provided.'}
+                                                            </p>
+                                                            {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
+                                                                <button
+                                                                    onClick={() => toggleManifesto(candidate.id)}
+                                                                    className="text-gray-500 hover:text-gray-300 font-medium text-sm"
+                                                                >
+                                                                    {isExpanded ? 'less' : 'more'}
+                                                                </button>
+                                                            )}
                                                         </div>
-                                                        <p className="font-semibold text-gray-900">{localLikes} likes</p>
-                                                        <p className={`text-gray-800 text-base leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
-                                                            {candidate.manifesto || 'No manifesto provided.'}
-                                                        </p>
-                                                        {candidate.manifesto && candidate.manifesto.split('. ').length > 3 && (
-                                                            <button
-                                                                onClick={() => toggleManifesto(candidate.id)}
-                                                                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                                                            >
-                                                                {isExpanded ? 'less' : 'more'}
-                                                            </button>
-                                                        )}
                                                     </div>
-                                                </div>
-                                            );
-                                        })
-                                    ) : (
-                                        <p className="col-span-full text-center text-blue-700 py-20 text-xl">
-                                            No candidates available.
-                                        </p>
-                                    )
-                                )}
+                                                );
+                                            })
+                                        ) : (
+                                            <p className="col-span-full text-center text-gray-300 py-20 text-xl">
+                                                No candidates available.
+                                            </p>
+                                        )
+                                    )}
+                                </div>
                             </div>
                         )}
                         {/* CLUB ELECTIONS TAB */}
@@ -955,14 +975,14 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {clubs.length > 0 ? (
                                             clubs.map((club) => (
-                                                <div key={club.id} className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-3xl shadow-2xl border border-blue-200 p-6 flex flex-col justify-between">
-                                                    <h3 className="text-xl font-bold text-blue-900 mb-4">{club.name}</h3>
+                                                <div key={club.id} className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-6 flex flex-col justify-between">
+                                                    <h3 className="text-xl font-bold text-white mb-4">{club.name}</h3>
                                                     <input
                                                         type="text"
                                                         placeholder="Enter your Member Number"
                                                         value={clubMemberInputs[club.id] || ''}
                                                         onChange={(e) => setClubMemberInputs(prev => ({ ...prev, [club.id]: e.target.value }))}
-                                                        className="w-full py-3 px-4 bg-white rounded-2xl border border-blue-200 focus:border-blue-500 outline-none text-base mb-4 text-blue-900 placeholder-blue-400"
+                                                        className="w-full py-3 px-4 bg-gray-800 rounded-2xl border border-gray-700 focus:border-pink-500 outline-none text-base mb-4 text-white placeholder-gray-400"
                                                     />
                                                     <button
                                                         onClick={async () => {
@@ -991,14 +1011,14 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 alert('Error accessing club election.');
                                                             }
                                                         }}
-                                                        className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl text-lg transition"
+                                                        className="w-full py-4 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold rounded-2xl text-lg transition"
                                                     >
                                                         Enter Club Election
                                                     </button>
                                                 </div>
                                             ))
                                         ) : (
-                                            <p className="col-span-full text-center text-blue-700 py-20 text-xl">
+                                            <p className="col-span-full text-center text-gray-300 py-20 text-xl">
                                                 No clubs available.
                                             </p>
                                         )}
@@ -1008,34 +1028,34 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                         )}
                     </main>
                     {/* Mobile Bottom Nav */}
-                    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-b from-blue-50 to-blue-100 border-t border-blue-200 shadow-2xl z-50">
+                    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-b from-gray-800 to-gray-900 border-t border-gray-700 shadow-2xl z-50">
                         <div className="grid grid-cols-4 py-3">
                             <button
                                 onClick={() => setActiveTab('ballot')}
-                                className={`flex flex-col items-center py-2 relative ${activeTab === 'ballot' ? 'text-blue-900' : 'text-blue-700'}`}
+                                className={`flex flex-col items-center py-2 relative ${activeTab === 'ballot' ? 'text-white' : 'text-gray-300'}`}
                             >
                                 <Vote size={24} />
                                 <span className="text-xs mt-1">Ballot</span>
-                                {voter.has_voted && <Check size={14} className="absolute top-0 right-2 text-blue-600 bg-white rounded-full border border-blue-500" />}
+                                {voter.has_voted && <Check size={14} className="absolute top-0 right-2 text-pink-500 bg-gray-900 rounded-full border border-pink-500" />}
                             </button>
                             <button
                                 onClick={() => setActiveTab('results')}
-                                className={`flex flex-col items-center py-2 relative ${activeTab === 'results' ? 'text-blue-900' : 'text-blue-700'}`}
+                                className={`flex flex-col items-center py-2 relative ${activeTab === 'results' ? 'text-white' : 'text-gray-300'}`}
                             >
                                 <Trophy size={24} />
                                 <span className="text-xs mt-1">Results</span>
-                                {!isResultsPublic && <Lock size={14} className="absolute top-0 right-2 text-blue-400 bg-white rounded-full border border-blue-200" />}
+                                {!isResultsPublic && <Lock size={14} className="absolute top-0 right-2 text-gray-400 bg-gray-900 rounded-full border border-gray-700" />}
                             </button>
                             <button
                                 onClick={() => setActiveTab('socials')}
-                                className={`flex flex-col items-center py-2 ${activeTab === 'socials' ? 'text-blue-900' : 'text-blue-700'}`}
+                                className={`flex flex-col items-center py-2 ${activeTab === 'socials' ? 'text-white' : 'text-gray-300'}`}
                             >
                                 <Users size={24} />
                                 <span className="text-xs mt-1">Socials</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('club-elections')}
-                                className={`flex flex-col items-center py-2 ${activeTab === 'club-elections' ? 'text-blue-900' : 'text-blue-700'}`}
+                                className={`flex flex-col items-center py-2 ${activeTab === 'club-elections' ? 'text-white' : 'text-gray-300'}`}
                             >
                                 <Users size={24} />
                                 <span className="text-xs mt-1">Clubs</span>
