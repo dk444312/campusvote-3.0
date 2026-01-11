@@ -3,7 +3,7 @@ import { getSupabase } from '../services/supabase';
 import { Candidate, Voter, VoteResult } from '../types';
 import {
     Check, Loader2, LogOut, Briefcase, Vote, Users,
-    Lock, Trophy, Heart, Clock, ChevronDown, Share
+    Lock, Trophy, Heart, Clock, ChevronDown, Share, X
 } from 'lucide-react';
 import { Echo } from './Echo';
 interface VoterPanelProps {
@@ -44,6 +44,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
     const [clubLikedCandidates, setClubLikedCandidates] = useState<Set<string>>(new Set());
     const [animatingLikes, setAnimatingLikes] = useState<Set<string>>(new Set());
     const [clubAnimatingLikes, setClubAnimatingLikes] = useState<Set<string>>(new Set());
+    const [selectedStory, setSelectedStory] = useState<Candidate | null>(null);
     const supabase = getSupabase();
     // Fetch data
     useEffect(() => {
@@ -347,6 +348,25 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                             className="w-full py-5 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold rounded-2xl text-xl transition border border-gray-700"
                         >
                             Start Voting
+                        </button>
+                    </div>
+                </div>
+            )}
+            {/* Story Viewing Modal */}
+            {selectedStory && (
+                <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" onClick={() => setSelectedStory(null)}>
+                    <div className="relative max-w-3xl w-full h-[80vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        <img 
+                            src={selectedStory.image_url} 
+                            alt={selectedStory.name} 
+                            className="max-w-full max-h-full object-contain"
+                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                        />
+                        <button 
+                            onClick={() => setSelectedStory(null)} 
+                            className="absolute top-4 right-4 text-white hover:text-pink-500"
+                        >
+                            <X size={32} />
                         </button>
                     </div>
                 </div>
@@ -748,7 +768,11 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                     <h2 className="text-lg font-semibold mb-2 text-white">Stories</h2>
                                     <div className="flex overflow-x-auto space-x-3 pb-2">
                                         {(clubMode ? clubCandidates : candidates).map(candidate => (
-                                            <div key={`story-${candidate.id}`} className="flex flex-col items-center flex-shrink-0 w-20">
+                                            <div 
+                                                key={`story-${candidate.id}`} 
+                                                className="flex flex-col items-center flex-shrink-0 w-20 cursor-pointer"
+                                                onClick={() => setSelectedStory(candidate)}
+                                            >
                                                 <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-pink-500">
                                                     <img 
                                                         src={candidate.image_url} 
