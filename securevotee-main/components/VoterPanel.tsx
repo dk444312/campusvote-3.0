@@ -342,7 +342,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
     if (loading) {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center">
-                <Loader2 className="animate-spin text-pink-500" size={56} />
+                <Loader2 className="animate-spin text-blue-500" size={56} />
             </div>
         );
     }
@@ -353,7 +353,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                 <div className="fixed inset-0 bg-gray-100/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-10 text-center border border-gray-200">
                         <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
-                            <Vote size={48} className="text-pink-500" />
+                            <Vote size={48} className="text-blue-500" />
                         </div>
                         <h1 className="text-4xl font-black text-black mb-4">Campus Vote 3.0</h1>
                         <p className="text-lg text-gray-700 mb-8">Please review all candidates and vote wisely.</p>
@@ -362,7 +362,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                         </p>
                         <button
                             onClick={() => setShowIntroModal(false)}
-                            className="w-full py-5 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold rounded-2xl text-xl transition border border-gray-200"
+                            className="w-full py-5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl text-xl transition border border-gray-200"
                         >
                             Start Voting
                         </button>
@@ -386,7 +386,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                         />
                         <button 
                             onClick={() => setSelectedStoryIndex(null)} 
-                            className="absolute top-4 right-4 text-white hover:text-pink-500"
+                            className="absolute top-4 right-4 text-white hover:text-blue-500"
                         >
                             <X size={32} />
                         </button>
@@ -490,7 +490,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 <div className="absolute inset-0 bg-white/40 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
                                                     <div className="bg-gradient-to-b from-gray-100 to-gray-200 rounded-3xl shadow-2xl p-10 text-center max-w-lg border border-gray-200">
                                                         <div className="mx-auto w-32 h-32 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6 border border-gray-200">
-                                                            <Check size={64} className="text-pink-500" />
+                                                            <Check size={64} className="text-blue-500" />
                                                         </div>
                                                         <h2 className="text-4xl font-black text-black mb-4">Thank You!</h2>
                                                         <p className="text-xl text-black">Your club vote has been recorded.</p>
@@ -511,29 +511,22 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 <div
                                                                     key={candidate.id}
                                                                     onClick={() => handleClubSelect(position, candidate.id)}
-                                                                    className={`bg-white rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${isSelected ? 'border-pink-500 ring-2 ring-pink-300' : 'border-gray-200'
+                                                                    className={`bg-white rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative flex flex-col items-center p-6 ${isSelected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'
                                                                         } ${clubVoter?.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
                                                                 >
-                                                                    <div className="flex">
-                                                                        <div className="w-32 h-32 bg-white flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-gray-200">
-                                                                            <img
-                                                                                src={candidate.image_url}
-                                                                                alt={candidate.name}
-                                                                                className="max-w-full max-h-full object-cover"
-                                                                                onError={(e) => (e.currentTarget.src = '/placeholder.png')}
-                                                                            />
-                                                                        </div>
-                                                                        <div className="p-5 flex-1">
-                                                                            <h4 className="text-xl font-bold text-black">{candidate.name}</h4>
-                                                                            <p className="text-gray-700 mt-3 line-clamp-3 italic">
-                                                                                "{candidate.manifesto || candidate.description || 'No manifesto'}"
-                                                                            </p>
-                                                                        </div>
-                                                                        <div className="p-5 flex items-center">
-                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-pink-500 bg-pink-500' : 'border-gray-200'
-                                                                                }`}>
-                                                                                {isSelected && <Check size={24} className="text-white" />}
-                                                                            </div>
+                                                                    <div className="w-40 h-40 mb-4 rounded-full overflow-hidden shadow-lg border border-gray-200">
+                                                                        <img
+                                                                            src={candidate.image_url}
+                                                                            alt={candidate.name}
+                                                                            className="w-full h-full object-cover"
+                                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                                        />
+                                                                    </div>
+                                                                    <h4 className="text-xl font-bold text-black text-center">{candidate.name}</h4>
+                                                                    <div className="mt-4 flex items-center justify-center">
+                                                                        <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-200'
+                                                                            }`}>
+                                                                            {isSelected && <Check size={24} className="text-white" />}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -549,7 +542,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                             onClick={handleClubVote}
                                                             disabled={!clubAllPositionsVoted || clubSubmitting}
                                                             className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${clubAllPositionsVoted && !clubSubmitting
-                                                                    ? 'bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white'
+                                                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
                                                                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                                                 }`}
                                                         >
@@ -580,7 +573,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 <div className="absolute inset-0 bg-white/40 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
                                                     <div className="bg-gradient-to-b from-gray-100 to-gray-200 rounded-3xl shadow-2xl p-10 text-center max-w-lg border border-gray-200">
                                                         <div className="mx-auto w-32 h-32 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6 border border-gray-200">
-                                                            <Check size={64} className="text-pink-500" />
+                                                            <Check size={64} className="text-blue-500" />
                                                         </div>
                                                         <h2 className="text-4xl font-black text-black mb-4">Thank You!</h2>
                                                         <p className="text-xl text-black">Your vote has been recorded.</p>
@@ -601,29 +594,22 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 <div
                                                                     key={candidate.id}
                                                                     onClick={() => handleSelect(position, candidate.id)}
-                                                                    className={`bg-white rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative ${isSelected ? 'border-pink-500 ring-2 ring-pink-300' : 'border-gray-200'
+                                                                    className={`bg-white rounded-2xl border-2 transition-all shadow-md hover:shadow-xl relative flex flex-col items-center p-6 ${isSelected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200'
                                                                         } ${voter.has_voted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
                                                                 >
-                                                                    <div className="flex">
-                                                                        <div className="w-32 h-32 bg-white flex items-center justify-center overflow-hidden rounded-l-2xl border-r border-gray-200">
-                                                                            <img
-                                                                                src={candidate.image_url}
-                                                                                alt={candidate.name}
-                                                                                className="max-w-full max-h-full object-cover"
-                                                                                onError={(e) => (e.currentTarget.src = '/placeholder.png')}
-                                                                            />
-                                                                        </div>
-                                                                        <div className="p-5 flex-1">
-                                                                            <h4 className="text-xl font-bold text-black">{candidate.name}</h4>
-                                                                            <p className="text-gray-700 mt-3 line-clamp-3 italic">
-                                                                                "{candidate.manifesto || candidate.description || 'No manifesto'}"
-                                                                            </p>
-                                                                        </div>
-                                                                        <div className="p-5 flex items-center">
-                                                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-pink-500 bg-pink-500' : 'border-gray-200'
-                                                                                }`}>
-                                                                                {isSelected && <Check size={24} className="text-white" />}
-                                                                            </div>
+                                                                    <div className="w-40 h-40 mb-4 rounded-full overflow-hidden shadow-lg border border-gray-200">
+                                                                        <img
+                                                                            src={candidate.image_url}
+                                                                            alt={candidate.name}
+                                                                            className="w-full h-full object-cover"
+                                                                            onError={(e) => (e.currentTarget.src = '/placeholder.png')}
+                                                                        />
+                                                                    </div>
+                                                                    <h4 className="text-xl font-bold text-black text-center">{candidate.name}</h4>
+                                                                    <div className="mt-4 flex items-center justify-center">
+                                                                        <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-200'
+                                                                            }`}>
+                                                                            {isSelected && <Check size={24} className="text-white" />}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -639,7 +625,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                             onClick={handleVote}
                                                             disabled={!allPositionsVoted || submitting}
                                                             className={`w-full py-5 rounded-2xl font-black text-xl transition-all shadow-2xl ${allPositionsVoted && !submitting
-                                                                    ? 'bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white'
+                                                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
                                                                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                                                 }`}
                                                         >
@@ -679,12 +665,12 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                     <div
                                                                         key={result.candidate_name}
                                                                         className={`flex items-center justify-between gap-4 p-4 rounded-xl ${isWinner
-                                                                                ? 'bg-gray-200 border border-pink-500'
+                                                                                ? 'bg-gray-200 border border-blue-500'
                                                                                 : 'bg-white border border-gray-200'
                                                                             }`}
                                                                     >
                                                                         <div className="flex items-center gap-3">
-                                                                            {isWinner && <Trophy size={20} className="text-pink-500" />}
+                                                                            {isWinner && <Trophy size={20} className="text-blue-500" />}
                                                                             <h4 className="text-lg font-semibold text-black">
                                                                                 {result.candidate_name}
                                                                                 {isWinner && winners.length > 1 && ' (Tie)'}
@@ -694,7 +680,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                             <p className="text-xl font-bold text-black">
                                                                                 {result.vote_count} votes
                                                                             </p>
-                                                                            <span className="text-2xl font-bold text-pink-400">
+                                                                            <span className="text-2xl font-bold text-blue-400">
                                                                                 #{index + 1}
                                                                             </span>
                                                                         </div>
@@ -741,12 +727,12 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                     <div
                                                                         key={result.candidate_name}
                                                                         className={`flex items-center justify-between gap-4 p-4 rounded-xl ${isWinner
-                                                                                ? 'bg-gray-200 border border-pink-500'
+                                                                                ? 'bg-gray-200 border border-blue-500'
                                                                                 : 'bg-white border border-gray-200'
                                                                             }`}
                                                                     >
                                                                         <div className="flex items-center gap-3">
-                                                                            {isWinner && <Trophy size={20} className="text-pink-500" />}
+                                                                            {isWinner && <Trophy size={20} className="text-blue-500" />}
                                                                             <h4 className="text-lg font-semibold text-black">
                                                                                 {result.candidate_name}
                                                                                 {isWinner && winners.length > 1 && ' (Tie)'}
@@ -756,7 +742,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                             <p className="text-xl font-bold text-black">
                                                                                 {result.vote_count} votes
                                                                             </p>
-                                                                            <span className="text-2xl font-bold text-pink-400">
+                                                                            <span className="text-2xl font-bold text-blue-400">
                                                                                 #{index + 1}
                                                                             </span>
                                                                         </div>
@@ -795,7 +781,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                 className="flex flex-col items-center flex-shrink-0 w-20 cursor-pointer"
                                                 onClick={() => setSelectedStoryIndex(index)}
                                             >
-                                                <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-pink-500">
+                                                <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-blue-500">
                                                     <img 
                                                         src={candidate.image_url} 
                                                         alt={candidate.name} 
@@ -831,7 +817,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                         }
                                                     } else {
                                                         // Fallback: Copy to clipboard
-                                                        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                                                        const shareText = `\( {shareData.title}\n \){shareData.text}\n${shareData.url}`;
                                                         try {
                                                             await navigator.clipboard.writeText(shareText);
                                                             alert('Candidate info copied to clipboard!');
@@ -930,7 +916,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                         }
                                                     } else {
                                                         // Fallback: Copy to clipboard
-                                                        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                                                        const shareText = `\( {shareData.title}\n \){shareData.text}\n${shareData.url}`;
                                                         try {
                                                             await navigator.clipboard.writeText(shareText);
                                                             alert('Candidate info copied to clipboard!');
@@ -1028,7 +1014,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                         placeholder="Enter your Member Number"
                                                         value={clubMemberInputs[club.id] || ''}
                                                         onChange={(e) => setClubMemberInputs(prev => ({ ...prev, [club.id]: e.target.value }))}
-                                                        className="w-full py-3 px-4 bg-white rounded-2xl border border-gray-200 focus:border-pink-500 outline-none text-base mb-4 text-black placeholder-gray-400"
+                                                        className="w-full py-3 px-4 bg-white rounded-2xl border border-gray-200 focus:border-blue-500 outline-none text-base mb-4 text-black placeholder-gray-400"
                                                     />
                                                     <button
                                                         onClick={async () => {
@@ -1057,7 +1043,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                                 alert('Error accessing club election.');
                                                             }
                                                         }}
-                                                        className="w-full py-4 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold rounded-2xl text-lg transition"
+                                                        className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl text-lg transition"
                                                     >
                                                         Enter Club Election
                                                     </button>
@@ -1082,7 +1068,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                             >
                                 <Vote size={24} />
                                 <span className="text-xs mt-1">Ballot</span>
-                                {voter.has_voted && <Check size={14} className="absolute top-0 right-2 text-pink-500 bg-white rounded-full border border-pink-500" />}
+                                {voter.has_voted && <Check size={14} className="absolute top-0 right-2 text-blue-500 bg-white rounded-full border border-blue-500" />}
                             </button>
                             <button
                                 onClick={() => setActiveTab('results')}
