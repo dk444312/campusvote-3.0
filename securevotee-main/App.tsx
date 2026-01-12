@@ -187,8 +187,8 @@ const App: React.FC = () => {
           <div className="max-w-md md:max-w-4xl w-full text-center text-black space-y-10 md:space-y-12 py-12 md:flex md:flex-row md:items-center md:justify-between md:text-left md:space-x-12">
             <div className="md:w-1/2 space-y-6">
               <div className="flex justify-center md:justify-start">
-                <div className="bg-pink-100 p-5 rounded-3xl shadow-2xl shadow-pink-100/50">
-                  <Vote size={56} className="text-pink-600" />
+                <div className="bg-blue-100 p-5 rounded-3xl shadow-2xl shadow-blue-100/50">
+                  <Vote size={56} className="text-blue-600" />
                 </div>
               </div>
               <div className="space-y-3">
@@ -200,9 +200,9 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="md:w-1/2 space-y-6">
-              <div className="bg-gradient-to-br from-pink-50 to-white border border-pink-100 p-8 rounded-3xl shadow-2xl">
+              <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 p-8 rounded-3xl shadow-2xl">
                 <h3 className="font-jakarta text-2xl md:text-3xl font-bold text-black mb-4 flex items-center justify-center md:justify-start gap-3">
-                  <Zap size={28} className="text-pink-400" /> Next-Level Voting
+                  <Zap size={28} className="text-blue-400" /> Next-Level Voting
                 </h3>
                 <p className="text-gray-700 leading-relaxed text-base">
                   Fully redesigned with military-grade security, instant verification, and a beautiful interface built for speed and trust.
@@ -210,7 +210,7 @@ const App: React.FC = () => {
               </div>
               <button
                 onClick={() => setIntroPhase(1)}
-                className="group relative w-full bg-gradient-to-r from-pink-600 to-pink-400 text-white font-bold py-5 rounded-full flex items-center justify-center gap-4 text-lg overflow-hidden transition-all hover:shadow-2xl hover:shadow-pink-200"
+                className="group relative w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold py-5 rounded-full flex items-center justify-center gap-4 text-lg overflow-hidden transition-all hover:shadow-2xl hover:shadow-blue-200"
               >
                 <span className="relative z-10 font-jakarta">Continue to Login</span>
                 <ArrowRight className="relative z-10 transition-transform group-hover:translate-x-2" size={24} />
@@ -226,25 +226,25 @@ const App: React.FC = () => {
       <FontWrapper>
         <div className="min-h-screen flex items-center justify-center bg-white px-4 sm:px-6 md:px-8">
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-xl p-4">
-            <div className="bg-white border border-pink-100 p-10 rounded-3xl shadow-2xl max-w-md w-full text-center relative">
+            <div className="bg-white border border-blue-100 p-10 rounded-3xl shadow-2xl max-w-md w-full text-center relative">
               <button
                 onClick={() => setIntroPhase(2)}
                 className="absolute top-5 right-5 text-gray-500 hover:text-black transition"
               >
                 <X size={28} />
               </button>
-              <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-pink-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
                 <Sparkles size={40} className="text-white" />
               </div>
               <h2 className="font-jakarta text-3xl font-extrabold text-black mb-3">Meet Echo AI</h2>
-              <div className="h-1 w-20 bg-pink-200 mx-auto mb-8 rounded-full"></div>
+              <div className="h-1 w-20 bg-blue-200 mx-auto mb-8 rounded-full"></div>
               <p className="text-gray-700 leading-relaxed text-lg mb-10">
-                Powered by <span className="font-bold text-pink-600">Google Gemini</span>, Echo helps foster respectful and informed discussions throughout the election.
+                Powered by <span className="font-bold text-blue-600">Google Gemini</span>, Echo helps foster respectful and informed discussions throughout the election.
               </p>
               <Echo />
               <button
                 onClick={() => setIntroPhase(2)}
-                className="mt-10 w-full bg-gradient-to-r from-pink-600 to-pink-400 hover:from-pink-500 hover:to-pink-300 text-white font-bold py-5 rounded-full text-lg transition shadow-xl"
+                className="mt-10 w-full bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300 text-white font-bold py-5 rounded-full text-lg transition shadow-xl"
               >
                 <span className="font-jakarta">Continue to Sign In</span>
               </button>
@@ -271,12 +271,12 @@ const App: React.FC = () => {
     <FontWrapper>
       <div className="min-h-screen flex items-center justify-center bg-white px-4 sm:px-6 md:px-8 py-12">
         <div className="w-full max-w-md md:max-w-lg">
-          <div className="bg-gradient-to-b from-pink-50 to-white border border-pink-100 p-8 sm:p-10 md:p-12 rounded-3xl shadow-2xl">
+          <div className="bg-gradient-to-b from-blue-50 to-white border border-blue-100 p-8 sm:p-10 md:p-12 rounded-3xl shadow-2xl">
             <div className="text-center mb-10 sm:mb-12">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-pink-100 rounded-3xl mb-6 shadow-xl">
-                <Vote size={40} className="text-pink-600" />
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-3xl mb-6 shadow-xl">
+                <Vote size={40} className="text-blue-600" />
               </div>
-            
+
               {/* Title with New Professional Font */}
               <h1 className="font-jakarta text-3xl sm:text-4xl md:text-5xl font-extrabold text-black tracking-tight leading-tight">
                 Campus Vote 3.0
@@ -285,8 +285,8 @@ const App: React.FC = () => {
             </div>
             {isVotingClosed ? (
               <div className="text-center space-y-8">
-                <div className="bg-pink-50 border border-pink-100 p-10 rounded-3xl">
-                  <Calendar size={72} className="text-pink-200 mx-auto mb-6" />
+                <div className="bg-blue-50 border border-blue-100 p-10 rounded-3xl">
+                  <Calendar size={72} className="text-blue-200 mx-auto mb-6" />
                   <h2 className="font-jakarta text-3xl font-bold text-black mb-4">Voting Period Ended</h2>
                   <p className="text-gray-600 text-lg">
                     The election concluded on <span className="font-bold">December 12, 2028</span>.
@@ -299,19 +299,19 @@ const App: React.FC = () => {
                       value={adminUser}
                       onChange={(e) => setAdminUser(e.target.value)}
                       placeholder="Admin Username"
-                      className="w-full px-5 py-4 bg-pink-50 border border-pink-200 rounded-full text-black placeholder-gray-400 focus:border-pink-400 outline-none transition"
+                      className="w-full px-5 py-4 bg-blue-50 border border-blue-200 rounded-full text-black placeholder-gray-400 focus:border-blue-400 outline-none transition"
                     />
                     <input
                       type="password"
                       value={adminPass}
                       onChange={(e) => setAdminPass(e.target.value)}
                       placeholder="Admin Password"
-                      className="w-full px-5 py-4 bg-pink-50 border border-pink-200 rounded-full text-black placeholder-gray-400 focus:border-pink-400 outline-none transition"
+                      className="w-full px-5 py-4 bg-blue-50 border border-blue-200 rounded-full text-black placeholder-gray-400 focus:border-blue-400 outline-none transition"
                     />
                     <button
                       onClick={handleAdminLogin}
                       disabled={isLoading}
-                      className="w-full bg-gradient-to-r from-pink-600 to-pink-400 hover:from-pink-500 hover:to-pink-300 text-white font-bold py-5 rounded-full transition flex items-center justify-center gap-3"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300 text-white font-bold py-5 rounded-full transition flex items-center justify-center gap-3"
                     >
                       {isLoading ? <Loader2 className="animate-spin" size={24} /> : <Shield size={24} />}
                       Admin Access
@@ -324,7 +324,7 @@ const App: React.FC = () => {
                 <button
                   onClick={handleGoogleVoterLogin}
                   disabled={isLoading}
-                  className="w-full group relative bg-pink-50 hover:bg-pink-100 border border-pink-200 hover:border-pink-300 backdrop-blur-sm px-6 py-5 rounded-full font-medium text-black flex items-center justify-center gap-3 sm:gap-4 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-pink-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full group relative bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 backdrop-blur-sm px-6 py-5 rounded-full font-medium text-black flex items-center justify-center gap-3 sm:gap-4 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-100 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <Loader2 className="animate-spin" size={24} />
@@ -339,25 +339,25 @@ const App: React.FC = () => {
                   Only @cunima.ac.mw accounts are permitted
                 </p>
                 {showAdminForm && (
-                  <div className="mt-10 pt-8 border-t border-pink-100 space-y-5">
+                  <div className="mt-10 pt-8 border-t border-blue-100 space-y-5">
                     <input
                       type="text"
                       value={adminUser}
                       onChange={(e) => setAdminUser(e.target.value)}
                       placeholder="Admin Username"
-                      className="w-full px-5 py-4 bg-pink-50 border border-pink-200 rounded-full text-black placeholder-gray-400 focus:border-pink-400 outline-none transition"
+                      className="w-full px-5 py-4 bg-blue-50 border border-blue-200 rounded-full text-black placeholder-gray-400 focus:border-blue-400 outline-none transition"
                     />
                     <input
                       type="password"
                       value={adminPass}
                       onChange={(e) => setAdminPass(e.target.value)}
                       placeholder="Admin Password"
-                      className="w-full px-5 py-4 bg-pink-50 border border-pink-200 rounded-full text-black placeholder-gray-400 focus:border-pink-400 outline-none transition"
+                      className="w-full px-5 py-4 bg-blue-50 border border-blue-200 rounded-full text-black placeholder-gray-400 focus:border-blue-400 outline-none transition"
                     />
                     <button
                       onClick={handleAdminLogin}
                       disabled={isLoading}
-                      className="w-full bg-gradient-to-r from-pink-600 to-pink-400 hover:from-pink-500 hover:to-pink-300 text-white font-bold py-5 rounded-full transition"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300 text-white font-bold py-5 rounded-full transition"
                     >
                       Admin Login
                     </button>
@@ -372,7 +372,7 @@ const App: React.FC = () => {
             )}
             <button
               onClick={() => setAdminClickCount(prev => prev + 1)}
-              className="absolute top-4 right-4 text-pink-200 hover:text-pink-400 transition"
+              className="absolute top-4 right-4 text-blue-200 hover:text-blue-400 transition"
             >
               <CheckCircle size={28} />
             </button>
