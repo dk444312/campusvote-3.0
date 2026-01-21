@@ -6,13 +6,16 @@ import {
     Lock, Trophy, Heart, Clock, ChevronDown, Share, X
 } from 'lucide-react';
 import { Echo } from './Echo';
+
 interface VoterPanelProps {
     voter: Voter;
     onLogout: () => void;
     onVoteComplete: () => void;
 }
+
 type SelectedVotes = Record<string, string>;
 type Tab = 'ballot' | 'results' | 'socials' | 'club-elections';
+
 export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteComplete }) => {
     const [activeTab, setActiveTab] = useState<Tab>('ballot');
     const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -131,14 +134,24 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
     }, [clubMode, currentClub, supabase, clubVoter]);
     // Auto-switch tab after voting (main)
     useEffect(() => {
-        if (voter.has_voted && activeTab === 'ballot') {
+        if (voter.has_voted && activeTab === 'ballot' && !clubMode) {
             if (isResultsPublic) {
                 setActiveTab('results');
             } else {
                 setActiveTab('socials');
             }
         }
-    }, [voter.has_voted, isResultsPublic, activeTab]);
+    }, [voter.has_voted, isResultsPublic, activeTab, clubMode]);
+    // Auto-switch for club
+    useEffect(() => {
+        if (clubMode && clubVoter?.has_voted && activeTab === 'ballot') {
+            if (isClubResultsPublic) {
+                setActiveTab('results');
+            } else {
+                setActiveTab('socials');
+            }
+        }
+    }, [clubMode, clubVoter?.has_voted, isClubResultsPublic, activeTab]);
     const candidatesByPosition = useMemo(() => {
         return candidates.reduce((acc, candidate) => {
             const position = candidate.position || 'Unassigned';
@@ -241,16 +254,6 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             return acc;
         }, {} as Record<string, VoteResult[]>);
     }, [clubResults]);
-    // Auto-switch for club
-    useEffect(() => {
-        if (clubMode && clubVoter?.has_voted && activeTab === 'ballot') {
-            if (isClubResultsPublic) {
-                setActiveTab('results');
-            } else {
-                setActiveTab('socials');
-            }
-        }
-    }, [clubMode, clubVoter?.has_voted, isClubResultsPublic, activeTab]);
     // Check if election has started (main or club)
     const hasElectionStarted = (isClub: boolean = false) => {
         const now = new Date();
@@ -371,21 +374,21 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
             )}
             {/* Story Viewing Modal */}
             {selectedCandidate && (
-                <div 
-                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" 
+                <div
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
                     onClick={() => setSelectedStoryIndex(null)}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                 >
                     <div className="relative max-w-3xl w-full h-[80vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                        <img 
-                            src={selectedCandidate.image_url} 
-                            alt={selectedCandidate.name} 
+                        <img
+                            src={selectedCandidate.image_url}
+                            alt={selectedCandidate.name}
                             className="max-w-full max-h-full object-contain"
                             onError={(e) => (e.currentTarget.src = '/placeholder.png')}
                         />
-                        <button 
-                            onClick={() => setSelectedStoryIndex(null)} 
+                        <button
+                            onClick={() => setSelectedStoryIndex(null)}
                             className="absolute top-4 right-4 text-white hover:text-blue-500"
                         >
                             <X size={32} />
@@ -776,15 +779,15 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                     <h2 className="text-lg font-semibold mb-2 text-black">Stories</h2>
                                     <div className="flex overflow-x-auto space-x-3 pb-2">
                                         {currentCandidates.map((candidate, index) => (
-                                            <div 
-                                                key={`story-${candidate.id}`} 
+                                            <div
+                                                key={`story-${candidate.id}`}
                                                 className="flex flex-col items-center flex-shrink-0 w-20 cursor-pointer"
                                                 onClick={() => setSelectedStoryIndex(index)}
                                             >
                                                 <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-blue-500">
-                                                    <img 
-                                                        src={candidate.image_url} 
-                                                        alt={candidate.name} 
+                                                    <img
+                                                        src={candidate.image_url}
+                                                        alt={candidate.name}
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => (e.currentTarget.src = '/placeholder.png')}
                                                     />
@@ -817,7 +820,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                         }
                                                     } else {
                                                         // Fallback: Copy to clipboard
-                                                        const shareText = `\( {shareData.title}\n \){shareData.text}\n${shareData.url}`;
+                                                        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
                                                         try {
                                                             await navigator.clipboard.writeText(shareText);
                                                             alert('Candidate info copied to clipboard!');
@@ -916,7 +919,7 @@ export const VoterPanel: React.FC<VoterPanelProps> = ({ voter, onLogout, onVoteC
                                                         }
                                                     } else {
                                                         // Fallback: Copy to clipboard
-                                                        const shareText = `\( {shareData.title}\n \){shareData.text}\n${shareData.url}`;
+                                                        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
                                                         try {
                                                             await navigator.clipboard.writeText(shareText);
                                                             alert('Candidate info copied to clipboard!');
